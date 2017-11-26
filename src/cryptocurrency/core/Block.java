@@ -75,4 +75,13 @@ public class Block {
             tx.display();
         }
     }
+    
+    public boolean verify(){
+        for(Transaction tx : transactions){
+            if(!tx.verify()){
+                return false;
+            }
+        }
+        return getBlockHash().remainder(BigInteger.valueOf(100)).equals(BigInteger.valueOf(0));
+    }
 }

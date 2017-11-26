@@ -13,26 +13,34 @@ import java.util.LinkedList;
  */
 public class BlockChain {
 
-    public LinkedList<Block> blockChain;
+    private LinkedList<Block> chain;
     
     public BlockChain(){
-        blockChain = new LinkedList();
+        chain = new LinkedList();
     }
     
     public BlockChain(BlockChain bc){
         this();
-        blockChain.addAll(bc.blockChain);
+        chain.addAll(bc.chain);
     }
 
     public boolean add(Block b) {
-        return blockChain.add(b);
+        return chain.add(b);
     }
 
     public void display() {
-        for (Block block : blockChain) {
+        for (Block block : chain) {
             System.out.println();
             block.display();
             System.out.println();
         }
+    }
+    
+    public boolean isEmpty(){
+        return chain.isEmpty();
+    }
+    
+    public Block getLast(){
+        return chain.getLast();
     }
 }

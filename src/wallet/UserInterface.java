@@ -8,8 +8,6 @@ package wallet;
 import cryptocurrency.core.BlockChain;
 import cryptocurrency.Center;
 import cryptocurrency.Miner;
-import cryptocurrency.core.UTXO;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -19,7 +17,7 @@ import java.util.Scanner;
  */
 public class UserInterface {
 
-    private static final List<Account> ACCOUNTS = new LinkedList();
+    private static final List<Account> ACCOUNTS = Center.getUsers();
     private static final Scanner INPUT = new Scanner(System.in);
 
     private static void door() {
@@ -59,8 +57,10 @@ public class UserInterface {
                     INPUT.nextLine();
                     String name = INPUT.nextLine();
                     Account acc = new Account(name);
-                    ACCOUNTS.add(acc);
+                    //ACCOUNTS.add(acc);
                     Center.registerAccount(acc);
+                    acc.initialTx();
+                    Center.showBlockChain();
                     break;
             }
 
@@ -70,17 +70,11 @@ public class UserInterface {
     private static void display(Account account) {
         int option;
         boolean completed = false;
-        while (!completed) {
-            double numberofCoins = 0.0;
-            for(UTXO utxo : Center.getUTXO()){
-                if(account.getAddress().equals(utxo.getReceiverAddress())){
-                   numberofCoins += utxo.getCoin();
-               } 
-            }
+        while (!completed) {            
             System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
-            System.out.println("ZZ  Name      : " + account.getName());
-            System.out.println("ZZ  Address   : " + account.getAddress().toString());
-            System.out.println("ZZ  Coin      : " + numberofCoins);
+            System.out.println("ZZ  Name          : " + account.getName());
+            System.out.println("ZZ  Address       : " + account.getEncryptedAddress());
+            System.out.println("ZZ  Coin          : " + account.getNumberofCoins());
             System.out.println("ZZ");
             System.out.println("ZZ");
             System.out.println("ZZ  Actions");
@@ -104,11 +98,10 @@ public class UserInterface {
     }
 
     private static void sendInteface(Account account) {
-        List<Account> users = Center.getUsers();
         System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
         System.out.println("ZZ  Receipents");
-        for (int i = 0; i < users.size(); i++) {
-            System.out.println("ZZ    " + i + " : " + users.get(i).getName());
+        for (int i = 0; i < ACCOUNTS.size(); i++) {
+            System.out.println("ZZ    " + i + " : " + ACCOUNTS.get(i).getName());
         }
         System.out.println("ZZ");
         System.out.println("Please choose a receipent : ");
@@ -117,12 +110,8 @@ public class UserInterface {
         System.out.println("ZZ  Input number of Coins : ");
         System.out.println("ZZ");
         int coins = INPUT.nextInt();
-        account.sendTx(account.getAddress() + ":" + users.get(receipent).getAddress() + ":" + coins);
-        System.out.println();
-        System.out.println("Block Chain->");
-        Center.getBlockChain().display();
-        System.out.println("<-Block Chain");
-        System.out.println();
+        account.sendTx(coins, ACCOUNTS.get(receipent),false);
+        Center.showBlockChain();
     }
     
     
@@ -130,8 +119,8 @@ public class UserInterface {
     public static void main(String[] args) {
         Account user1 = new Account("user 1");
         Center.registerAccount(user1);
-        BlockChain blockChain = new BlockChain(Center.getBlockChain());
-        Center.registerMiner(new Miner(user1.getName(), blockChain));
+        BlockChain blockChain = Center.getBlockChain();
+        Center.registerMiner(new Miner(user1, blockChain));
         
         door();
     }

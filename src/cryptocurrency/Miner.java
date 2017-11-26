@@ -9,19 +9,19 @@ import cryptocurrency.core.Block;
 import cryptocurrency.core.Transaction;
 import cryptocurrency.core.BlockChain;
 import java.math.BigInteger;
+import wallet.Account;
 
 /**
  *
  * @author Biplav
  */
-public class Miner {
-
-    String name;
+public class Miner {    
     BlockChain blockChain;
+    Account account;
 
-    public Miner(String name, BlockChain chain) {
-        this.name = name;
-        blockChain = chain;
+    public Miner(Account account, BlockChain chain) {
+        this.account = account;
+        blockChain = chain;        
     }
 
     public void receiveTransaction(Transaction[] transaction) {
@@ -30,50 +30,53 @@ public class Miner {
             Center.broadcastBlock(block);
         }
     }
-    
+
     public void receiveTransaction(Transaction transaction) {
-        Block block = accumulateTransactions(transaction);
-        if (block != null) {
-            Center.broadcastBlock(block);
+        if (transaction.verify()) {
+            Block block = accumulateTransactions(transaction);
+            if (block != null) {
+                Center.broadcastBlock(block);
+            }
         }
     }
-    
-    private Block accumulateTransactions(Transaction transaction){
-        return processTransaction(new Transaction[]{transaction});
+
+    private Block accumulateTransactions(Transaction transaction) {
+        Transaction tx = account.prepareTX(Center.COINBASE,account,true);
+        return processTransaction(new Transaction[]{transaction, tx});
     }
 
     public boolean receiveBlock(Block block) {
-        if (verifyBlock(block)) {
-            blockChain.add(block);
-            return true;
+        if (block == null) {
+            return false;
+        }
+        if (block.verify()) {
+            if (blockChain.add(block)) {
+                for (Transaction tx : block.getTransactions()) {
+                    tx.removeUTXO();
+                    tx.addUTXO();
+                }
+                return true;
+            }
         }
         return false;
     }
 
     public Block processTransaction(Transaction[] transaction) {
-        Block block;
-        if (blockChain.blockChain.isEmpty()) {
-            block = new Block(BigInteger.valueOf(0), transaction);
+        Block block;                   
+        if (blockChain.isEmpty()) {
+            block = new Block(BigInteger.ZERO, transaction);
         } else {
-            block = new Block(blockChain.blockChain.getLast().getBlockHash(), transaction);
+            block = new Block(blockChain.getLast().getBlockHash(), transaction);
         }
         BigInteger nonce;
         BigInteger limit = BigInteger.valueOf(1000000);
-        for (nonce = BigInteger.valueOf(0); nonce.compareTo(limit) < 0;) {            
+        for (nonce = BigInteger.valueOf(0); nonce.compareTo(limit) < 0;) {
             block.setNonce(nonce);
-            if (verifyBlock(block)) {
-                System.out.println("Verified: "+nonce.toString());
+            if (block.verify()) {
                 break;
-            }   
+            }
             nonce = nonce.add(BigInteger.ONE);
-        }        
-        return block;
-    }
-
-    public boolean verifyBlock(Block block) {
-        if (block == null) {
-            return false;
         }
-        return block.getBlockHash().remainder(BigInteger.valueOf(100000)).equals(BigInteger.valueOf(0));
+        return block;
     }
 }

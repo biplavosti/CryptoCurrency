@@ -8,6 +8,8 @@ package cryptocurrency.core;
 import cryptocurrency.Center;
 import cryptography.Main;
 import java.math.BigInteger;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedList;
 
 /**
@@ -17,28 +19,52 @@ import java.util.LinkedList;
 public class Transaction {
 
     private final String entry;
+    private final boolean isCoinBase;
+    private final String timeStamp;
     private final LinkedList<Input> inputs = new LinkedList();
     private final LinkedList<Output> outputs = new LinkedList();
 
-    public Transaction(String entry) {
+    public Transaction(String entry, boolean isCoinBase) {
         this.entry = entry;
+        this.isCoinBase = isCoinBase;
+        timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
     }
 
     public final BigInteger hash() {
-        return Main.hash(entry);
+        return Main.hash(
+                entry + ""
+                + timeStamp
+        );
     }
 
     public void addInput(LinkedList<UTXO> inputsUtxo) {
-        for(UTXO utxo : inputsUtxo){
-            inputs.add(new Input(utxo.getTxHash(),utxo.getTxOutHash()));
-            Center.getUTXO().remove(utxo);
+        for (UTXO utxo : inputsUtxo) {
+            inputs.add(new Input(utxo.getTxHash(), utxo.getTxOutHash()));
         }
     }
 
     public void addOutput(double coin, BigInteger address) {
         Output out = new Output(coin, address);
         outputs.add(out);
-        Center.addUTXO(hash(), out.hash(), address, coin);
+    }
+
+    public void addUTXO() {
+        for (Output out : outputs) {
+            Center.addUTXO(hash(), out.hash(), out.getReceiverAddress(), out.getCoin());
+        }
+    }
+
+    public void removeUTXO() {
+        for (Input input : inputs) {
+            for (UTXO utxo : Center.getUTXO()) {
+                if (input.getPrevTxHash() == utxo.getTxHash()
+                        && input.getPrevTxOutputHash() == utxo.getTxOutHash()) {
+                    Center.getUTXO().remove(utxo);
+                    break;
+                }
+            }
+        }
+
     }
 
     public void display() {
@@ -54,66 +80,121 @@ public class Transaction {
         }
     }
 
+    public boolean verify() {
+        if (outputs.isEmpty()) {
+            return false;
+        }
+        for (Output out : outputs) {
+            if (!out.verify()) {
+                return false;
+            }
+        }
+        
+        boolean isInputEmpty = inputs.isEmpty();
+        if (isCoinBase) {
+            if (isInputEmpty) {
+                return true;
+            }
+        } else {
+            if (isInputEmpty) {
+                return false;
+            }
+        }
+
+        double inputSum = 0.0;
+        double outputSum = 0.0;
+        for (Input input : inputs) {
+            UTXO matchedUtxo = input.getUTXO();
+            if (matchedUtxo == null) {
+                return false;
+            } else {
+                inputSum += matchedUtxo.getCoin();
+            }
+        }
+        for (Output out : outputs) {
+            outputSum += out.getCoin();
+        }
+        if (inputSum != outputSum) {
+            return false;
+        }
+
+        return true;
+    }
+
     private class Input {
 
         private BigInteger prevTxHash;
-        private BigInteger prevTxOutputHash;        
+        private BigInteger prevTxOutputHash;
 
-        public Input(BigInteger prevTxHash, BigInteger prevTxOutputHash) {
+        private Input(BigInteger prevTxHash, BigInteger prevTxOutputHash) {
             this.prevTxHash = prevTxHash;
             this.prevTxOutputHash = prevTxOutputHash;
         }
 
-        public BigInteger getPrevTxHash() {
+        private BigInteger getPrevTxHash() {
             return prevTxHash;
         }
 
-        public void setPrevTxHash(BigInteger prevTxHash) {
+        private void setPrevTxHash(BigInteger prevTxHash) {
             this.prevTxHash = prevTxHash;
         }
 
-        public BigInteger getPrevTxOutputHash() {
+        private BigInteger getPrevTxOutputHash() {
             return prevTxOutputHash;
         }
 
-        public void setPrevTxOutputHash(BigInteger prevTxOutputHash) {
+        private void setPrevTxOutputHash(BigInteger prevTxOutputHash) {
             this.prevTxOutputHash = prevTxOutputHash;
         }
 
-        public final BigInteger hash() {
+        private BigInteger hash() {
             return Main.hash(prevTxHash + "" + prevTxOutputHash);
+        }
+
+        private UTXO getUTXO() {
+            for (UTXO utxo : Center.getUTXO()) {
+                if (getPrevTxHash() == utxo.getTxHash()
+                        && getPrevTxOutputHash() == utxo.getTxOutHash()) {
+                    return utxo;
+                }
+            }
+            return null;
         }
 
     }
 
     private class Output {
 
-        private double coin;
+        private Double coin;
         private BigInteger receiverAddress;
 
-        public Output(double coin, BigInteger receiverAddress) {
+        private Output(double coin, BigInteger receiverAddress) {
             this.coin = coin;
             this.receiverAddress = receiverAddress;
         }
 
-        public double getCoin() {
+        private double getCoin() {
             return coin;
         }
 
-        public void setCoin(double coin) {
+        private void setCoin(double coin) {
             this.coin = coin;
         }
 
-        public BigInteger getReceiverAddress() {
+        private BigInteger getReceiverAddress() {
             return receiverAddress;
         }
 
-        public void setReceiverAddress(BigInteger receiverAddress) {
+        private void setReceiverAddress(BigInteger receiverAddress) {
             this.receiverAddress = receiverAddress;
         }
 
-        public final BigInteger hash() {
+        private BigInteger hash() {
             return Main.hash(receiverAddress + "" + coin);
+        }
+
+        private boolean verify() {
+            return coin != null && receiverAddress != null;
         }
     }
 }

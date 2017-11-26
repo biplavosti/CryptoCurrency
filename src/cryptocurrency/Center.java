@@ -25,6 +25,7 @@ public class Center {
     private static final List<Miner> MINERS = new LinkedList();
     private static final BlockChain BLOCKCHAIN = new BlockChain();
     private static final LinkedList<UTXO> UNSPENTTXOUT = new LinkedList();
+    public static double COINBASE = 25;
 
     public static List<Account> getUsers() {
         return USERS;
@@ -55,24 +56,25 @@ public class Center {
         for (Miner miner : MINERS) {
             miner.receiveTransaction(transaction);
         }
-    }
-    
-    public static void broadcastTransaction(String transaction) {
+    }        
+
+    public static void broadcastTransaction(Transaction transaction) {
         for (Miner miner : MINERS) {
-            miner.receiveTransaction(new Transaction(transaction));
+            miner.receiveTransaction(transaction);
         }
     }
 
     public static void broadcastBlock(Block block) {
-        int trueCounter = 0;
+//        int trueCounter = 0;
         for (Miner miner : MINERS) {
-            if(miner.receiveBlock(block)){
-                trueCounter++;
-            }
+            miner.receiveBlock(block);
+//            if(miner.receiveBlock(block)){
+//                trueCounter++;
+//            }
         }
-        if(trueCounter > 50 / 100 * MINERS.size()) {
-            BLOCKCHAIN.add(block);
-        }
+//        if(trueCounter > 50 / 100 * MINERS.size()) {
+//            BLOCKCHAIN.add(block);
+//        }
     }
     
     public static void registerAccount(Account user){
@@ -85,5 +87,13 @@ public class Center {
         if (miner != null) {
             MINERS.add(miner);
         }
+    }
+    
+    public static void showBlockChain(){
+        System.out.println();
+        System.out.println("Block Chain->");
+        BLOCKCHAIN.display();
+        System.out.println("<-Block Chain");
+        System.out.println();
     }
 }
