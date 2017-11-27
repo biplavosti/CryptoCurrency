@@ -70,7 +70,7 @@ public class Miner {
         }
         BigInteger nonce;
         BigInteger limit = BigInteger.valueOf(1000000);
-        for (nonce = BigInteger.valueOf(0); nonce.compareTo(limit) < 0;) {
+        for (nonce = BigInteger.ZERO; nonce.compareTo(limit) < 0;) {
             block.setNonce(nonce);
             if (block.verify()) {
                 break;

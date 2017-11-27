@@ -19,14 +19,14 @@ import java.util.LinkedList;
 public class Transaction {
 
     private final String entry;
-    private final boolean isCoinBase;
+    private final boolean coinBase;
     private final String timeStamp;
     private final LinkedList<Input> inputs = new LinkedList();
     private final LinkedList<Output> outputs = new LinkedList();
 
     public Transaction(String entry, boolean isCoinBase) {
         this.entry = entry;
-        this.isCoinBase = isCoinBase;
+        this.coinBase = isCoinBase;
         timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
     }
 
@@ -37,6 +37,10 @@ public class Transaction {
         );
     }
 
+    public boolean isCoinBase() {
+        return coinBase;
+    }    
+    
     public void addInput(LinkedList<UTXO> inputsUtxo) {
         for (UTXO utxo : inputsUtxo) {
             inputs.add(new Input(utxo.getTxHash(), utxo.getTxOutHash()));
@@ -91,7 +95,7 @@ public class Transaction {
         }
         
         boolean isInputEmpty = inputs.isEmpty();
-        if (isCoinBase) {
+        if (coinBase) {
             if (isInputEmpty) {
                 return true;
             }

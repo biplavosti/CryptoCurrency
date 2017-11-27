@@ -75,11 +75,18 @@ public class Block {
             tx.display();
         }
     }
-    
-    public boolean verify(){
-        for(Transaction tx : transactions){
-            if(!tx.verify()){
+
+    public boolean verify() {
+        int noOfCoinbaseTX = 0;
+        for (Transaction tx : transactions) {
+            if (!tx.verify()) {
                 return false;
+            }
+            if (tx.isCoinBase()) {
+                noOfCoinbaseTX++;
+                if (noOfCoinbaseTX > 1) {
+                    return false;
+                }
             }
         }
         return getBlockHash().remainder(BigInteger.valueOf(100)).equals(BigInteger.valueOf(0));
