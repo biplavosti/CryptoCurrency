@@ -15,10 +15,10 @@ import core.common.Account;
 public class Miner {    
     BlockChain blockChain;
     Account account;
-
+    
     public Miner(Account account, BlockChain chain) {
         this.account = account;
-        blockChain = chain;        
+        blockChain = chain;
     }
 
     public void receiveTransaction(Transaction[] transaction) {
@@ -40,8 +40,11 @@ public class Miner {
     }
 
     private Block accumulateTransactions(Transaction transaction) {
-        Transaction tx = account.prepareTX(Center.COINBASE,account,true);
-        return processTransaction(new Transaction[]{transaction, tx});
+        if(!transaction.isCoinBase()){
+            Transaction tx = account.prepareTX(Center.COINBASE,account,true);
+            return processTransaction(new Transaction[]{transaction, tx});
+        }        
+        return processTransaction(new Transaction[]{transaction});
     }
 
     public boolean receiveBlock(Block block) {

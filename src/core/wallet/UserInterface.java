@@ -6,9 +6,7 @@
 package core.wallet;
 
 import core.common.Account;
-import core.BlockChain;
 import core.Center;
-import core.Miner;
 import java.util.List;
 import java.util.Scanner;
 
@@ -21,7 +19,7 @@ public class UserInterface {
     private static final List<Account> ACCOUNTS = Center.getUsers();
     private static final Scanner INPUT = new Scanner(System.in);
 
-    private static void door() {
+    private void door() {
         int option;
         boolean completed = false;
         while (!completed) {
@@ -31,6 +29,7 @@ public class UserInterface {
             if (!ACCOUNTS.isEmpty()) {
                 System.out.println("ZZ  2 : ENTER INTO EXISTING ACCOUNT");
             }
+            System.out.println("ZZ  3 : MINE COINBASE TX");
             System.out.println("ZZ");
             System.out.println("Please enter your choice : ");
             option = INPUT.nextInt();
@@ -57,10 +56,10 @@ public class UserInterface {
                     System.out.println("ZZ Name : ");
                     INPUT.nextLine();
                     String name = INPUT.nextLine();
-                    Account acc = new Account(name);
-                    //ACCOUNTS.add(acc);
-                    Center.registerAccount(acc);
-                    acc.initialTx();
+                    Center.createAccount(name);
+                    break;
+                case 3:
+                    Center.mineFirstCoin();
                     Center.showBlockChain();
                     break;
             }
@@ -68,7 +67,7 @@ public class UserInterface {
         }
     }
 
-    private static void display(Account account) {
+    private void display(Account account) {
         int option;
         boolean completed = false;
         while (!completed) {            
@@ -98,7 +97,7 @@ public class UserInterface {
         }
     }
 
-    private static void sendInteface(Account account) {
+    private void sendInteface(Account account) {
         System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
         System.out.println("ZZ  Receipents");
         for (int i = 0; i < ACCOUNTS.size(); i++) {
@@ -114,15 +113,8 @@ public class UserInterface {
         account.sendTx(coins, ACCOUNTS.get(receipent),false);
         Center.showBlockChain();
     }
-    
-    
-
-    public static void main(String[] args) {
-        Account miner = new Account("Miner");
-        Center.registerAccount(miner);
-        BlockChain blockChain = Center.getBlockChain();
-        Center.registerMiner(new Miner(miner, blockChain));
         
-        door();
-    }
+    public static void main(String[] args) {               
+        new UserInterface().door();
+    }        
 }

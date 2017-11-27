@@ -21,7 +21,7 @@ public class Account {
     private final PrivateKey privateKey;
     private final PublicKey pubKey;
 
-    public Account(String name) {
+    private Account(String name) {
         this.name = name;
 
         BigInteger p = CryptoService.generatePrime(128);
@@ -61,12 +61,10 @@ public class Account {
         pubKey = new PublicKey(e, p.multiply(q));
         privateKey = new PrivateKey(d);
     }
-
-    public void initialTx() {
-        this.sendTx(2);
-        this.sendTx(3);
-        this.sendTx(2);
-    }
+    
+    public static Account create(String name){
+        return new Account(name);
+    }    
 
     public String getName() {
         return name;
@@ -88,6 +86,10 @@ public class Account {
     public final void sendTx(double coin, Account receiverAccount, boolean isCoinBase) {
         Transaction tx = prepareTX(coin,receiverAccount,isCoinBase);      
         Center.broadcastTransaction(tx); 
+    }
+    
+    public Transaction prepareTX(double coin){
+        return prepareTX(coin, this, true);
     }
     
     public Transaction prepareTX(double coin, Account receiver, boolean isCoinBase){

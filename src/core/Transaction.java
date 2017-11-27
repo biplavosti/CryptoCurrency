@@ -38,8 +38,8 @@ public class Transaction {
 
     public boolean isCoinBase() {
         return coinBase;
-    }    
-    
+    }
+
     public void addInput(LinkedList<UTXO> inputsUtxo) {
         inputsUtxo.forEach((utxo) -> {
             inputs.add(new Input(utxo.getTxHash(), utxo.getTxOutHash()));
@@ -92,7 +92,7 @@ public class Transaction {
                 return false;
             }
         }
-        
+
         boolean isInputEmpty = inputs.isEmpty();
         if (coinBase) {
             if (isInputEmpty) {

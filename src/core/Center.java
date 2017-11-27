@@ -5,10 +5,6 @@
  */
 package core;
 
-import core.Block;
-import core.Transaction;
-import core.BlockChain;
-import core.UTXO;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -22,8 +18,8 @@ import core.common.Account;
 public class Center {
 
     private static final List<Account> USERS = new ArrayList();
-    private static final List<Miner> MINERS = new LinkedList();
     private static final BlockChain BLOCKCHAIN = new BlockChain();
+    private static final Miner MINER = new Miner(Center.createAccount("Miner"), BLOCKCHAIN);
     private static final LinkedList<UTXO> UNSPENTTXOUT = new LinkedList();
     public static double COINBASE = 25;
 
@@ -31,69 +27,61 @@ public class Center {
         return USERS;
     }
 
-    public static List<Miner> getMiners() {
-        return MINERS;
+    public static Miner getMiner() {
+        return MINER;
     }
 
     public static BlockChain getBlockChain() {
         return BLOCKCHAIN;
     }
-    
-    public static LinkedList<UTXO> getUTXO(){
+
+    public static LinkedList<UTXO> getUTXO() {
         return UNSPENTTXOUT;
     }
-    
-    public static void addUTXO(BigInteger txHash, BigInteger outHash, 
-            BigInteger address, double coin){
+
+    public static void addUTXO(BigInteger txHash, BigInteger outHash,
+            BigInteger address, double coin) {
         UNSPENTTXOUT.add(new UTXO(txHash, outHash, address, coin));
     }
-    
-    public static void removeUnspent(UTXO utxo){
+
+    public static void removeUnspent(UTXO utxo) {
         UNSPENTTXOUT.remove(utxo);
     }
 
     public static void broadcastTransaction(Transaction[] transaction) {
-        for (Miner miner : MINERS) {
-            miner.receiveTransaction(transaction);
-        }
-    }        
+        MINER.receiveTransaction(transaction);
+    }
 
     public static void broadcastTransaction(Transaction transaction) {
-        for (Miner miner : MINERS) {
-            miner.receiveTransaction(transaction);
-        }
+        MINER.receiveTransaction(transaction);
     }
 
     public static void broadcastBlock(Block block) {
-//        int trueCounter = 0;
-        for (Miner miner : MINERS) {
-            miner.receiveBlock(block);
-//            if(miner.receiveBlock(block)){
-//                trueCounter++;
-//            }
-        }
-//        if(trueCounter > 50 / 100 * MINERS.size()) {
-//            BLOCKCHAIN.add(block);
-//        }
+        MINER.receiveBlock(block);
     }
-    
-    public static void registerAccount(Account user){
-        if(user != null){
-            USERS.add(user);
+
+    private static Account registerAccount(Account user) {        
+        
+        for(Account acc : USERS){
+            if(acc == user) return acc;
         }
+        USERS.add(user);
+        return user;
     }
-    
-    public static void registerMiner(Miner miner) {
-        if (miner != null) {
-            MINERS.add(miner);
-        }
-    }
-    
-    public static void showBlockChain(){
+
+    public static void showBlockChain() {
         System.out.println();
         System.out.println("Block Chain->");
         BLOCKCHAIN.display();
         System.out.println("<-Block Chain");
         System.out.println();
+    }
+    
+    public static Account createAccount(String name){
+        return registerAccount(Account.create(name));
+    }
+    
+    public static void mineFirstCoin(){
+        broadcastTransaction(MINER.account.prepareTX(COINBASE, MINER.account, true));
     }
 }
