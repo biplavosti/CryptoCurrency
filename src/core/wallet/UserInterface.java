@@ -3,11 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package wallet;
+package core.wallet;
 
-import cryptocurrency.core.BlockChain;
-import cryptocurrency.Center;
-import cryptocurrency.Miner;
+import core.common.Account;
+import core.BlockChain;
+import core.Center;
+import core.Miner;
 import java.util.List;
 import java.util.Scanner;
 
@@ -117,10 +118,10 @@ public class UserInterface {
     
 
     public static void main(String[] args) {
-        Account user1 = new Account("user 1");
-        Center.registerAccount(user1);
+        Account miner = new Account("Miner");
+        Center.registerAccount(miner);
         BlockChain blockChain = Center.getBlockChain();
-        Center.registerMiner(new Miner(user1, blockChain));
+        Center.registerMiner(new Miner(miner, blockChain));
         
         door();
     }

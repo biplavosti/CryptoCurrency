@@ -3,12 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package wallet;
+package core.common;
 
-import cryptocurrency.Center;
-import cryptocurrency.core.Transaction;
-import cryptocurrency.core.UTXO;
-import cryptography.Main;
+import core.Center;
+import core.Transaction;
+import core.UTXO;
 import java.math.BigInteger;
 import java.util.LinkedList;
 
@@ -60,11 +59,7 @@ public class Account {
         }
 
         pubKey = new PublicKey(e, p.multiply(q));
-        pubKey.display();
-
         privateKey = new PrivateKey(d);
-        privateKey.display();
-
     }
 
     public void initialTx() {
@@ -101,12 +96,12 @@ public class Account {
         
         Transaction tx = new Transaction(coin + " coins transferred", isCoinBase);
         if (isCoinBase) {
-            tx.addOutput(coin, Main.encrypt(receiverAddress, pubKey.getEncryptionKey(), pubKey.getPrimeProduct()));            
+            tx.addOutput(coin, Main.encrypt(receiverAddress, pubKey));            
         } else {
             double sum = 0.0;
             LinkedList<UTXO> inputsUtxo = new LinkedList();
             for (UTXO utxo : Center.getUTXO()) {
-                if (senderAddress.equals(Main.decrypt(utxo.getReceiverAddress(), privateKey.getDecryptionKey(), pubKey.getPrimeProduct()))) {
+                if (senderAddress.equals(Main.decrypt(utxo.getReceiverAddress(), privateKey, pubKey))) {
                     sum += utxo.getCoin();
                     inputsUtxo.add(utxo);
                     if (sum >= coin) {
@@ -116,11 +111,13 @@ public class Account {
             }
             if (sum >= coin) {
                 tx.addInput(inputsUtxo);
-                tx.addOutput(coin, Main.encrypt(receiverAddress, receiver.pubKey.getEncryptionKey(), receiver.pubKey.getPrimeProduct()));
+                tx.addOutput(coin, Main.encrypt(receiverAddress, receiver.pubKey));
                 double change = sum - coin;
                 if (change > 0) {
-                    tx.addOutput(change, Main.encrypt(senderAddress, pubKey.getEncryptionKey(), pubKey.getPrimeProduct()));
+                    tx.addOutput(change, Main.encrypt(senderAddress, pubKey));
                 }                
+            }else{
+                System.out.println("ERROR : Not enough coins");
             }
         }
         return tx;
@@ -130,7 +127,7 @@ public class Account {
         double numberofCoins = 0.0;
         BigInteger address = getAddress();
         for (UTXO utxo : Center.getUTXO()) {
-            if (address.equals(Main.decrypt(utxo.getReceiverAddress(), privateKey.getDecryptionKey(), pubKey.getPrimeProduct()))) {
+            if (address.equals(Main.decrypt(utxo.getReceiverAddress(), privateKey, pubKey))) {
                 numberofCoins += utxo.getCoin();
             }
         }
@@ -138,6 +135,6 @@ public class Account {
     }
 
     public BigInteger getEncryptedAddress() {
-        return Main.encrypt(getAddress(), pubKey.getEncryptionKey(), pubKey.getPrimeProduct());
+        return Main.encrypt(getAddress(), pubKey);
     }
 }

@@ -3,13 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package cryptocurrency;
+package core;
 
-import cryptocurrency.core.Block;
-import cryptocurrency.core.Transaction;
-import cryptocurrency.core.BlockChain;
 import java.math.BigInteger;
-import wallet.Account;
+import core.common.Account;
 
 /**
  *
@@ -37,6 +34,8 @@ public class Miner {
             if (block != null) {
                 Center.broadcastBlock(block);
             }
+        }else{
+            System.out.println("ERROR : Transaction is not verified");
         }
     }
 
@@ -49,7 +48,7 @@ public class Miner {
         if (block == null) {
             return false;
         }
-        if (block.verify()) {
+        if (block.confirm()) {
             if (blockChain.add(block)) {
                 for (Transaction tx : block.getTransactions()) {
                     tx.removeUTXO();
@@ -57,6 +56,8 @@ public class Miner {
                 }
                 return true;
             }
+        }else{
+            System.out.println("ERROR : Block is not verfied");
         }
         return false;
     }

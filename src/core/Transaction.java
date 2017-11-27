@@ -3,10 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package cryptocurrency.core;
+package core;
 
-import cryptocurrency.Center;
-import cryptography.Main;
+import core.common.Main;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -42,9 +41,9 @@ public class Transaction {
     }    
     
     public void addInput(LinkedList<UTXO> inputsUtxo) {
-        for (UTXO utxo : inputsUtxo) {
+        inputsUtxo.forEach((utxo) -> {
             inputs.add(new Input(utxo.getTxHash(), utxo.getTxOutHash()));
-        }
+        });
     }
 
     public void addOutput(double coin, BigInteger address) {
@@ -53,9 +52,9 @@ public class Transaction {
     }
 
     public void addUTXO() {
-        for (Output out : outputs) {
+        outputs.forEach((out) -> {
             Center.addUTXO(hash(), out.hash(), out.getReceiverAddress(), out.getCoin());
-        }
+        });
     }
 
     public void removeUTXO() {
@@ -74,14 +73,14 @@ public class Transaction {
     public void display() {
         System.out.println("  [T]   -> " + entry);
         System.out.println("     Inputs  ->");
-        for (Input input : inputs) {
+        inputs.forEach((input) -> {
             System.out.println("        [TXI]  -> " + input.getPrevTxHash());
-        }
+        });
         System.out.println("     Outputs  ->");
-        for (Output output : outputs) {
+        outputs.forEach((output) -> {
             System.out.println("        [TXO]  -> " + output.getCoin() + " to "
                     + output.getReceiverAddress());
-        }
+        });
     }
 
     public boolean verify() {
@@ -118,11 +117,7 @@ public class Transaction {
         for (Output out : outputs) {
             outputSum += out.getCoin();
         }
-        if (inputSum != outputSum) {
-            return false;
-        }
-
-        return true;
+        return inputSum == outputSum;
     }
 
     private class Input {

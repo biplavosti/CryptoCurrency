@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package cryptocurrency.core;
+package core;
 
-import cryptography.Main;
+import core.common.Main;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -76,19 +76,24 @@ public class Block {
         }
     }
 
-    public boolean verify() {
-        int noOfCoinbaseTX = 0;
+    public boolean confirm() {
+//        int noOfCoinbaseTX = 0;
         for (Transaction tx : transactions) {
             if (!tx.verify()) {
                 return false;
             }
-            if (tx.isCoinBase()) {
-                noOfCoinbaseTX++;
-                if (noOfCoinbaseTX > 1) {
-                    return false;
-                }
-            }
+//            if (tx.isCoinBase()) {
+//                noOfCoinbaseTX++;
+//                System.out.println("no of coinbase : " + noOfCoinbaseTX);
+//                if (noOfCoinbaseTX > 1) {
+//                    return false;
+//                }
+//            }
         }
+        return getBlockHash().remainder(BigInteger.valueOf(100)).equals(BigInteger.valueOf(0));
+    }
+    
+    public boolean verify(){
         return getBlockHash().remainder(BigInteger.valueOf(100)).equals(BigInteger.valueOf(0));
     }
 }

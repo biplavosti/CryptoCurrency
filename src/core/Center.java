@@ -3,17 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package cryptocurrency;
+package core;
 
-import cryptocurrency.core.Block;
-import cryptocurrency.core.Transaction;
-import cryptocurrency.core.BlockChain;
-import cryptocurrency.core.UTXO;
+import core.Block;
+import core.Transaction;
+import core.BlockChain;
+import core.UTXO;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import wallet.Account;
+import core.common.Account;
 
 /**
  *

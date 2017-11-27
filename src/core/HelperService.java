@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package cryptocurrency.core;
+package core;
 
-import cryptography.Main;
+import core.common.Main;
 import java.math.BigInteger;
 
 /**

@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package cryptography;
+package core.common;
 
-import cryptocurrency.core.Block;
+import core.Block;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -56,12 +56,20 @@ public class Main {
         );
     }
     
-    public static BigInteger encrypt(BigInteger msg, BigInteger key, BigInteger product){
+    private static BigInteger encrypt(BigInteger msg, BigInteger key, BigInteger product){
         return mod(msg,key,product);
     }
     
-    public static BigInteger decrypt(BigInteger msg, BigInteger key, BigInteger product){
+    public static BigInteger encrypt(BigInteger msg, PublicKey pubKey){
+        return encrypt(msg, pubKey.getEncryptionKey(), pubKey.getPrimeProduct());
+    }
+    
+    private static BigInteger decrypt(BigInteger msg, BigInteger key, BigInteger product){
         return mod(msg,key,product);
+    }
+    
+    public static BigInteger decrypt(BigInteger msg, PrivateKey privateKey, PublicKey pubKey){
+        return encrypt(msg, privateKey.getDecryptionKey(), pubKey.getPrimeProduct());
     }
     
     public static BigInteger generatePrime(int bit){

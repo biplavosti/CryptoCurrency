@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package wallet;
+package core.common;
 
 import java.math.BigInteger;
 
@@ -11,7 +11,7 @@ import java.math.BigInteger;
  *
  * @author Biplav
  */
-class PublicKey {
+public final class PublicKey {
     private final BigInteger encryptionKey;
     private final BigInteger primeProduct;
 
