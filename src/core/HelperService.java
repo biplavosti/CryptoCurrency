@@ -5,7 +5,7 @@
  */
 package core;
 
-import core.common.Main;
+import core.common.CryptoService;
 import java.math.BigInteger;
 
 /**
@@ -17,9 +17,9 @@ public class HelperService {
         if (codes.length < 1) {
             return BigInteger.valueOf(0);
         } else if (codes.length == 2) {
-            return Main.hash(codes[0] + "" + codes[1]);
+            return CryptoService.hash(codes[0] + "" + codes[1]);
         } else if (codes.length == 1) {
-            return Main.hash(codes[0] + "" + codes[0]);
+            return CryptoService.hash(codes[0] + "" + codes[0]);
         } else {
             BigInteger hash1 = BigInteger.valueOf(0);
             BigInteger hash2;
@@ -28,16 +28,16 @@ public class HelperService {
             boolean pair = false;
             for (int i = 0; i < codes.length; i++) {
                 if (i % 2 == 0) {
-                    hash1 = Main.hash(codes[i] + "");
+                    hash1 = CryptoService.hash(codes[i] + "");
                     pair = false;
                 } else {
-                    hash2 = Main.hash(codes[i] + "");
-                    codes1[j++] = Main.hash(hash1 + "" + hash2);
+                    hash2 = CryptoService.hash(codes[i] + "");
+                    codes1[j++] = CryptoService.hash(hash1 + "" + hash2);
                     pair = true;
                 }
             }
             if (!pair) {
-                codes1[j] = Main.hash(hash1 + "" + hash1);
+                codes1[j] = CryptoService.hash(hash1 + "" + hash1);
             }
             return merkleRoot(codes1);
         }

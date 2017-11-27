@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  *
  * @author Biplav
  */
-public class Main {    
+public class CryptoService {    
     
     public static BigInteger hash(String key) {
         try {

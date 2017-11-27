@@ -5,7 +5,7 @@
  */
 package core;
 
-import core.common.Main;
+import core.common.CryptoService;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -30,7 +30,7 @@ public class Transaction {
     }
 
     public final BigInteger hash() {
-        return Main.hash(
+        return CryptoService.hash(
                 entry + ""
                 + timeStamp
         );
@@ -147,7 +147,7 @@ public class Transaction {
         }
 
         private BigInteger hash() {
-            return Main.hash(prevTxHash + "" + prevTxOutputHash);
+            return CryptoService.hash(prevTxHash + "" + prevTxOutputHash);
         }
 
         private UTXO getUTXO() {
@@ -189,7 +189,7 @@ public class Transaction {
         }
 
         private BigInteger hash() {
-            return Main.hash(receiverAddress + "" + coin);
+            return CryptoService.hash(receiverAddress + "" + coin);
         }
 
         private boolean verify() {

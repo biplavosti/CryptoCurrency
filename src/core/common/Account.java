@@ -24,8 +24,8 @@ public class Account {
     public Account(String name) {
         this.name = name;
 
-        BigInteger p = Main.generatePrime(128);
-        BigInteger q = Main.generatePrime(129);
+        BigInteger p = CryptoService.generatePrime(128);
+        BigInteger q = CryptoService.generatePrime(129);
         BigInteger e = BigInteger.ZERO;
         BigInteger d = BigInteger.ZERO;
         BigInteger pMinus1 = p.subtract(BigInteger.ONE);
@@ -73,7 +73,7 @@ public class Account {
     }
 
     public final BigInteger getAddress() {
-        return Main.hash(pubKey.getEncryptionKey() + "" + pubKey.getPrimeProduct());
+        return CryptoService.hash(pubKey.getEncryptionKey() + "" + pubKey.getPrimeProduct());
     }
 
     public void display() {
@@ -96,12 +96,12 @@ public class Account {
         
         Transaction tx = new Transaction(coin + " coins transferred", isCoinBase);
         if (isCoinBase) {
-            tx.addOutput(coin, Main.encrypt(receiverAddress, pubKey));            
+            tx.addOutput(coin, CryptoService.encrypt(receiverAddress, pubKey));            
         } else {
             double sum = 0.0;
             LinkedList<UTXO> inputsUtxo = new LinkedList();
             for (UTXO utxo : Center.getUTXO()) {
-                if (senderAddress.equals(Main.decrypt(utxo.getReceiverAddress(), privateKey, pubKey))) {
+                if (senderAddress.equals(CryptoService.decrypt(utxo.getReceiverAddress(), privateKey, pubKey))) {
                     sum += utxo.getCoin();
                     inputsUtxo.add(utxo);
                     if (sum >= coin) {
@@ -111,10 +111,10 @@ public class Account {
             }
             if (sum >= coin) {
                 tx.addInput(inputsUtxo);
-                tx.addOutput(coin, Main.encrypt(receiverAddress, receiver.pubKey));
+                tx.addOutput(coin, CryptoService.encrypt(receiverAddress, receiver.pubKey));
                 double change = sum - coin;
                 if (change > 0) {
-                    tx.addOutput(change, Main.encrypt(senderAddress, pubKey));
+                    tx.addOutput(change, CryptoService.encrypt(senderAddress, pubKey));
                 }                
             }else{
                 System.out.println("ERROR : Not enough coins");
@@ -127,7 +127,7 @@ public class Account {
         double numberofCoins = 0.0;
         BigInteger address = getAddress();
         for (UTXO utxo : Center.getUTXO()) {
-            if (address.equals(Main.decrypt(utxo.getReceiverAddress(), privateKey, pubKey))) {
+            if (address.equals(CryptoService.decrypt(utxo.getReceiverAddress(), privateKey, pubKey))) {
                 numberofCoins += utxo.getCoin();
             }
         }
@@ -135,6 +135,6 @@ public class Account {
     }
 
     public BigInteger getEncryptedAddress() {
-        return Main.encrypt(getAddress(), pubKey);
+        return CryptoService.encrypt(getAddress(), pubKey);
     }
 }

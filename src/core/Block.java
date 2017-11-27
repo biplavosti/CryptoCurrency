@@ -5,7 +5,7 @@
  */
 package core;
 
-import core.common.Main;
+import core.common.CryptoService;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -34,8 +34,7 @@ public class Block {
     }
 
     public final BigInteger hash() {
-        return Main.hash(
-                Main.hash(
+        return CryptoService.hash(CryptoService.hash(
                         merkle_root + ""
                         + timeStamp + ""
                         + prevHash + ""
