@@ -7,6 +7,7 @@ package core;
 
 import core.common.CryptoService;
 import java.math.BigInteger;
+import java.util.List;
 
 /**
  *
@@ -41,5 +42,18 @@ public class HelperService {
             }
             return merkleRoot(codes1);
         }
+    }
+    
+    public static int getNoOfCoinbaseTX(List<Transaction> transactions){
+        int noOfCoinbaseTX = 0;
+        for (Transaction tx : transactions) {            
+            if (tx.isCoinBase()) {
+                noOfCoinbaseTX++;                
+                if (noOfCoinbaseTX > 1) {
+                    break;
+                }
+            }
+        }
+        return noOfCoinbaseTX;
     }
 }

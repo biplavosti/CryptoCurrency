@@ -48,7 +48,7 @@ public class Center {
         UNSPENTTXOUT.remove(utxo);
     }
 
-    public static void broadcastTransaction(Transaction[] transaction) {
+    public static void broadcastTransaction(List<Transaction> transaction) {
         MINER.receiveTransaction(transaction);
     }
 

@@ -9,6 +9,7 @@ import core.common.CryptoService;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 /**
  *
@@ -17,18 +18,18 @@ import java.util.Date;
 public class Block {
 
     private final BigInteger prevHash;
-    private final Transaction[] transactions;
+    private final List<Transaction> transactions;
     private final String timeStamp;
     private final BigInteger merkle_root;
     private BigInteger nonce = BigInteger.ZERO;
 
-    public Block(BigInteger prevHash, Transaction[] transactions) {
+    public Block(BigInteger prevHash, List<Transaction> transactions) {
         this.prevHash = prevHash;
         this.transactions = transactions;
         timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-        BigInteger codes[] = new BigInteger[transactions.length];
-        for (int i = 0; i < transactions.length; i++) {
-            codes[i] = transactions[i].hash();
+        BigInteger codes[] = new BigInteger[transactions.size()];
+        for (int i = 0; i < transactions.size(); i++) {
+            codes[i] = transactions.get(i).hash();
         }
         merkle_root = HelperService.merkleRoot(codes);
     }
@@ -47,7 +48,7 @@ public class Block {
         return prevHash;
     }
 
-    public Transaction[] getTransactions() {
+    public List<Transaction> getTransactions() {
         return transactions;
     }
 
