@@ -5,42 +5,79 @@
  */
 package core;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.LinkedList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author Biplav
  */
-public final class BlockChain {
+public final class BlockChain implements Serializable {
 
     private final LinkedList<Block> chain;
-    private static final BlockChain BLOCKCHAIN = new BlockChain();
-    
-    private BlockChain(){
+    private static BlockChain BLOCKCHAIN;
+
+    private BlockChain() {
         chain = new LinkedList();
     }
-    
-    public static BlockChain getInstance(){
+
+    public static BlockChain getInstance() {
+        if (BLOCKCHAIN == null) {
+            try {
+                FileInputStream fs = new FileInputStream("blockchain.ser");
+                ObjectInputStream os = new ObjectInputStream(fs);
+                BLOCKCHAIN = (BlockChain) os.readObject();
+                BLOCKCHAIN.display();
+            } catch (IOException | ClassNotFoundException e) {
+                BLOCKCHAIN = new BlockChain();
+            }
+        }
         return BLOCKCHAIN;
-    }        
+    }
 
     public boolean add(Block b) {
-        return chain.add(b);
+        if (chain.add(b)) {
+            save();
+            return true;
+        }
+        return false;
     }
 
     public void display() {
+        System.out.println();
+        System.out.println("Block Chain->");
         for (Block block : chain) {
             System.out.println();
             block.display();
             System.out.println();
         }
+        System.out.println("<-Block Chain");
+        System.out.println();
     }
-    
-    public boolean isEmpty(){
+
+    public boolean isEmpty() {
         return chain.isEmpty();
     }
-    
-    public Block getLast(){
+
+    public Block getLast() {
         return chain.getLast();
+    }
+
+    public void save() {
+        try {
+            FileOutputStream fs = new FileOutputStream("blockchain.ser");
+            ObjectOutputStream os = new ObjectOutputStream(fs);
+            os.writeObject(this);
+            os.close();
+        } catch (IOException ex) {
+            Logger.getLogger(BlockChain.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 }

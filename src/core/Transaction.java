@@ -6,6 +6,7 @@
 package core;
 
 import core.common.CryptoService;
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -15,7 +16,7 @@ import java.util.LinkedList;
  *
  * @author Biplav
  */
-public class Transaction {
+public class Transaction implements Serializable {
 
     private final String entry;
     private final boolean coinBase;
@@ -120,7 +121,7 @@ public class Transaction {
         return inputSum == outputSum;
     }
 
-    private class Input {
+    private class Input implements Serializable {
 
         private BigInteger prevTxHash;
         private BigInteger prevTxOutputHash;
@@ -162,7 +163,7 @@ public class Transaction {
 
     }
 
-    private class Output {
+    private class Output implements Serializable {
 
         private Double coin;
         private BigInteger receiverAddress;

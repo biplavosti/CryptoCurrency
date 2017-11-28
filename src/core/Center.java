@@ -69,12 +69,8 @@ public class Center {
         return user;
     }
 
-    public static void showBlockChain() {
-        System.out.println();
-        System.out.println("Block Chain->");
-        BLOCKCHAIN.display();
-        System.out.println("<-Block Chain");
-        System.out.println();
+    public static void showBlockChain() {                
+        BLOCKCHAIN.display();        
     }
     
     public static Account createAccount(String name){

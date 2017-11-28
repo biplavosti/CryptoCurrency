@@ -6,6 +6,7 @@
 package core;
 
 import core.common.CryptoService;
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -15,7 +16,7 @@ import java.util.List;
  *
  * @author Biplav
  */
-public class Block {
+public class Block implements Serializable {
 
     private final BigInteger prevHash;
     private final List<Transaction> transactions;
@@ -36,11 +37,11 @@ public class Block {
 
     public final BigInteger hash() {
         return CryptoService.hash(CryptoService.hash(
-                        merkle_root + ""
-                        + timeStamp + ""
-                        + prevHash + ""
-                        + nonce
-                ) + ""
+                merkle_root + ""
+                + timeStamp + ""
+                + prevHash + ""
+                + nonce
+        ) + ""
         );
     }
 
@@ -83,7 +84,7 @@ public class Block {
                 return false;
             }
             if (tx.isCoinBase()) {
-                noOfCoinbaseTX++;                
+                noOfCoinbaseTX++;
                 if (noOfCoinbaseTX > 1) {
                     return false;
                 }
@@ -91,8 +92,8 @@ public class Block {
         }
         return verify();
     }
-    
-    public boolean verify(){
+
+    public boolean verify() {
         return getBlockHash().remainder(BigInteger.valueOf(100)).equals(BigInteger.valueOf(0));
     }
 }
