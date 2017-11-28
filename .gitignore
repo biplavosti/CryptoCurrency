@@ -31,3 +31,4 @@ nbdist/
 .nb-gradle/
 /blockchain.ser
 /center.ser
+/utxo.ser

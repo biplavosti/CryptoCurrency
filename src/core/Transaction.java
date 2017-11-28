@@ -59,7 +59,7 @@ public class Transaction implements Serializable {
     }
 
     public void removeUTXO() {
-        LinkedList<UTXO> UTXOList = Center.getInstance().getUTXO();
+        LinkedList<UTXO> UTXOList = UnspentTX.getInstance().getList();
         for (Input input : inputs) {
             for (UTXO utxo : UTXOList) {
                 if (input.getPrevTxHash() == utxo.getTxHash()
@@ -153,7 +153,7 @@ public class Transaction implements Serializable {
         }
 
         private UTXO getUTXO() {
-            for (UTXO utxo : Center.getInstance().getUTXO()) {
+            for (UTXO utxo : UnspentTX.getInstance().getList()) {
                 if (getPrevTxHash() == utxo.getTxHash()
                         && getPrevTxOutputHash() == utxo.getTxOutHash()) {
                     return utxo;

@@ -7,7 +7,6 @@ package core;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import core.common.Account;
 import java.io.FileInputStream;
@@ -24,9 +23,9 @@ import java.io.Serializable;
 public class Center implements Serializable {
 
     private final List<Account> USERS;
-    private final BlockChain BLOCKCHAIN;
+    private transient BlockChain BLOCKCHAIN;
     private final Miner MINER;
-    private final LinkedList<UTXO> UNSPENTTXOUT;
+    private transient UnspentTX UNSPENTTXOUT;
     public double COINBASE = 25;
 
     private static Center CENTER;
@@ -34,7 +33,7 @@ public class Center implements Serializable {
     private Center() {
         USERS = new ArrayList();
         BLOCKCHAIN = BlockChain.getInstance();        
-        UNSPENTTXOUT = new LinkedList();
+        UNSPENTTXOUT = UnspentTX.getInstance();
         MINER = new Miner(createAccount("Miner"));
     }
 
@@ -44,6 +43,8 @@ public class Center implements Serializable {
                 FileInputStream fs = new FileInputStream("center.ser");
                 ObjectInputStream os = new ObjectInputStream(fs);
                 CENTER = (Center) os.readObject();
+                CENTER.BLOCKCHAIN = BlockChain.getInstance();
+                CENTER.UNSPENTTXOUT = UnspentTX.getInstance();
             } catch (IOException | ClassNotFoundException e) {
                 CENTER = new Center();
             }
@@ -63,17 +64,17 @@ public class Center implements Serializable {
         return BLOCKCHAIN;
     }
 
-    public LinkedList<UTXO> getUTXO() {
+    public UnspentTX getUTXO() {
         return UNSPENTTXOUT;
     }
 
     public void addUTXO(BigInteger txHash, BigInteger outHash,
             BigInteger address, double coin) {
-        UNSPENTTXOUT.add(new UTXO(txHash, outHash, address, coin));
+        UNSPENTTXOUT.addUTXO(new UTXO(txHash, outHash, address, coin));
     }
 
     public void removeUnspent(UTXO utxo) {
-        UNSPENTTXOUT.remove(utxo);
+        UNSPENTTXOUT.removeUTXO(utxo);
     }
 
     public void broadcastTransaction(List<Transaction> transaction) {

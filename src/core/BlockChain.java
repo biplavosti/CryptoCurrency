@@ -41,8 +41,11 @@ public final class BlockChain implements Serializable {
     }
 
     public boolean add(Block b) {
-        
-        return chain.add(b);
+        if(chain.add(b)){
+            save();
+            return true;
+        }
+        return false;
     }
 
     public void display() {
@@ -69,7 +72,7 @@ public final class BlockChain implements Serializable {
         try {
             FileOutputStream fs = new FileOutputStream("blockchain.ser");
             ObjectOutputStream os = new ObjectOutputStream(fs);
-            os.writeObject(this);
+            os.writeObject(this);            
             os.close();
         } catch (IOException ex) {
             System.out.println("ERROR : Could not save BlockChain");
