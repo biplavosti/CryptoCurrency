@@ -11,18 +11,18 @@ import java.util.LinkedList;
  *
  * @author Biplav
  */
-public class BlockChain {
+public final class BlockChain {
 
-    private LinkedList<Block> chain;
+    private final LinkedList<Block> chain;
+    private static final BlockChain BLOCKCHAIN = new BlockChain();
     
-    public BlockChain(){
+    private BlockChain(){
         chain = new LinkedList();
     }
     
-    public BlockChain(BlockChain bc){
-        this();
-        chain.addAll(bc.chain);
-    }
+    public static BlockChain getInstance(){
+        return BLOCKCHAIN;
+    }        
 
     public boolean add(Block b) {
         return chain.add(b);

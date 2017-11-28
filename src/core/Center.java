@@ -18,7 +18,7 @@ import core.common.Account;
 public class Center {
 
     private static final List<Account> USERS = new ArrayList();
-    private static final BlockChain BLOCKCHAIN = new BlockChain();
+    private static final BlockChain BLOCKCHAIN = BlockChain.getInstance();
     private static final Miner MINER = new Miner(Center.createAccount("Miner"), BLOCKCHAIN);
     private static final LinkedList<UTXO> UNSPENTTXOUT = new LinkedList();
     public static double COINBASE = 25;
