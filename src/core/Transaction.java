@@ -5,7 +5,6 @@
  */
 package core;
 
-import core.common.Center;
 import core.common.CryptoService;
 import java.io.Serializable;
 import java.math.BigInteger;
