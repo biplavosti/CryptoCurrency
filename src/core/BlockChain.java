@@ -21,9 +21,11 @@ public final class BlockChain implements Serializable {
 
     private final LinkedList<Block> chain;
     private static BlockChain BLOCKCHAIN;
+    private transient static TransactionList txList;
 
     private BlockChain() {
         chain = new LinkedList();
+        txList = TransactionList.getInstance();
     }
 
     public static BlockChain getInstance() {
@@ -32,6 +34,7 @@ public final class BlockChain implements Serializable {
                 FileInputStream fs = new FileInputStream("blockchain.ser");
                 ObjectInputStream os = new ObjectInputStream(fs);
                 BLOCKCHAIN = (BlockChain) os.readObject();
+                txList = TransactionList.getInstance();
                 BLOCKCHAIN.display();
             } catch (IOException | ClassNotFoundException e) {
                 BLOCKCHAIN = new BlockChain();
@@ -40,23 +43,23 @@ public final class BlockChain implements Serializable {
         return BLOCKCHAIN;
     }
 
-    public boolean add(Block b) {
-        if(chain.add(b)){
-            save();
-            return true;
-        }
-        return false;
+    public boolean add(Block block) {
+        chain.add(block);
+        txList.add(block.getLiveTransactions());
+        save();
+        return true;
     }
 
     public void display() {
         System.out.println();
-        System.out.println("Block Chain->");
+        System.out.println("Block Chain-> " + chain.size() + " === " + txList.getList().size());
         for (Block block : chain) {
             System.out.println();
             block.display();
             System.out.println();
         }
         System.out.println("<-Block Chain");
+        getLast().display();
         System.out.println();
     }
 
@@ -72,7 +75,7 @@ public final class BlockChain implements Serializable {
         try {
             FileOutputStream fs = new FileOutputStream("blockchain.ser");
             ObjectOutputStream os = new ObjectOutputStream(fs);
-            os.writeObject(this);            
+            os.writeObject(this);
             os.close();
         } catch (IOException ex) {
             System.out.println("ERROR : Could not save BlockChain");

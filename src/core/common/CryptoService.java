@@ -18,8 +18,8 @@ import java.util.logging.Logger;
  *
  * @author Biplav
  */
-public class CryptoService {    
-    
+public class CryptoService {
+
     public static BigInteger hash(String key) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -29,7 +29,7 @@ public class CryptoService {
         }
         return BigInteger.valueOf(0);
     }
-    
+
     public static BigInteger mod(BigInteger base, BigInteger exponent, BigInteger dividend) {
         return modulus(base, exponent, dividend, BigInteger.ONE);
     }
@@ -48,31 +48,30 @@ public class CryptoService {
         }
 
         return (modulus(
-                base.multiply(base).remainder(div), 
-                exp.divide(BigInteger.valueOf(2)), div, 
+                base.multiply(base).remainder(div),
+                exp.divide(BigInteger.valueOf(2)), div,
                 exp.remainder(BigInteger.valueOf(2))
-                        .equals(BigInteger.ONE) ? 
-                        base.multiply(rem).remainder(div) : rem)
-        );
+                        .equals(BigInteger.ONE)
+                ? base.multiply(rem).remainder(div) : rem));
     }
-    
-    private static BigInteger encrypt(BigInteger msg, BigInteger key, BigInteger product){
-        return mod(msg,key,product);
+
+    private static BigInteger encrypt(BigInteger msg, BigInteger key, BigInteger product) {
+        return mod(msg, key, product);
     }
-    
-    public static BigInteger encrypt(BigInteger msg, PublicKey pubKey){
+
+    public static BigInteger encrypt(BigInteger msg, PublicKey pubKey) {
         return encrypt(msg, pubKey.getEncryptionKey(), pubKey.getPrimeProduct());
     }
-    
-    private static BigInteger decrypt(BigInteger msg, BigInteger key, BigInteger product){
-        return mod(msg,key,product);
+
+    private static BigInteger decrypt(BigInteger msg, BigInteger key, BigInteger product) {
+        return mod(msg, key, product);
     }
-    
-    public static BigInteger decrypt(BigInteger msg, PrivateKey privateKey, PublicKey pubKey){
+
+    public static BigInteger decrypt(BigInteger msg, PrivateKey privateKey, PublicKey pubKey) {
         return encrypt(msg, privateKey.getDecryptionKey(), pubKey.getPrimeProduct());
     }
-    
-    public static BigInteger generatePrime(int bit){
+
+    public static BigInteger generatePrime(int bit) {
         return BigInteger.probablePrime(bit, new Random());
     }
 }

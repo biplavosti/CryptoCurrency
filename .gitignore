@@ -32,3 +32,4 @@ nbdist/
 /blockchain.ser
 /center.ser
 /utxo.ser
+/transactions.ser

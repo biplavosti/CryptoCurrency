@@ -12,19 +12,20 @@ import java.math.BigInteger;
  *
  * @author Biplav
  */
-public class UTXO implements Serializable{
+public class UTXO implements Serializable {
+
     private final BigInteger txHash;
     private final BigInteger txOutHash;
     private final BigInteger receiverAddress;
     private final double coin;
 
-    public UTXO(BigInteger txHash, BigInteger OutTxHash, 
+    public UTXO(BigInteger txHash, BigInteger OutTxHash,
             BigInteger receiverAddress, double coin) {
         this.txHash = txHash;
         this.txOutHash = OutTxHash;
         this.receiverAddress = receiverAddress;
         this.coin = coin;
-    }  
+    }
 
     public BigInteger getTxHash() {
         return txHash;

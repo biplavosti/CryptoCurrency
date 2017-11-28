@@ -3,12 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package core;
+package core.common;
 
+import core.Block;
+import core.BlockChain;
+import core.Miner;
+import core.Transaction;
+import core.UTXO;
+import core.UnspentTX;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import core.common.Account;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,15 +31,16 @@ public class Center implements Serializable {
     private transient BlockChain BLOCKCHAIN;
     private final Miner MINER;
     private transient UnspentTX UNSPENTTXOUT;
-    public double COINBASE = 25;
+    public transient double COINBASE = 25;
 
     private static Center CENTER;
 
     private Center() {
         USERS = new ArrayList();
-        BLOCKCHAIN = BlockChain.getInstance();        
+        BLOCKCHAIN = BlockChain.getInstance();
         UNSPENTTXOUT = UnspentTX.getInstance();
         MINER = new Miner(createAccount("Miner"));
+        COINBASE = 25;
     }
 
     public static Center getInstance() {
@@ -45,6 +51,7 @@ public class Center implements Serializable {
                 CENTER = (Center) os.readObject();
                 CENTER.BLOCKCHAIN = BlockChain.getInstance();
                 CENTER.UNSPENTTXOUT = UnspentTX.getInstance();
+                CENTER.COINBASE = 25;
             } catch (IOException | ClassNotFoundException e) {
                 CENTER = new Center();
             }
@@ -58,7 +65,7 @@ public class Center implements Serializable {
 
     public Miner getMiner() {
         return MINER;
-    }        
+    }
 
     public BlockChain getBlockChain() {
         return BLOCKCHAIN;
@@ -109,7 +116,7 @@ public class Center implements Serializable {
     }
 
     public void mineFirstCoin() {
-        broadcastTransaction(MINER.account.prepareTX(COINBASE, MINER.account, true));
+        broadcastTransaction(MINER.getAccount().prepareTX(COINBASE));
     }
 
     public void save() {

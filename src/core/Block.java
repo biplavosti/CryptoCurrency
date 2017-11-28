@@ -19,7 +19,7 @@ import java.util.List;
 public class Block implements Serializable {
 
     private final BigInteger prevHash;
-    private final List<Transaction> transactions;
+    private transient final List<Transaction> transactions;
     private final String timeStamp;
     private final BigInteger merkle_root;
     private BigInteger nonce = BigInteger.ZERO;
@@ -49,7 +49,11 @@ public class Block implements Serializable {
         return prevHash;
     }
 
-    public List<Transaction> getTransactions() {
+    public List<Transaction> getStoredTransactions() {
+        return TransactionList.getInstance().getList(getBlockHash());
+    }
+
+    public List<Transaction> getLiveTransactions() {
         return transactions;
     }
 
@@ -72,14 +76,14 @@ public class Block implements Serializable {
         System.out.println("Merkle Root   -> " + merkle_root.toString());
         System.out.println("Nonce         -> " + nonce);
         System.out.println("Transactions  -> ");
-        for (Transaction tx : transactions) {
+        for (Transaction tx : getStoredTransactions()) {
             tx.display();
         }
     }
 
     public boolean confirm() {
         int noOfCoinbaseTX = 0;
-        for (Transaction tx : transactions) {
+        for (Transaction tx : getLiveTransactions()) {
             if (!tx.verify()) {
                 return false;
             }

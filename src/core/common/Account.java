@@ -5,7 +5,6 @@
  */
 package core.common;
 
-import core.Center;
 import core.Transaction;
 import core.UTXO;
 import core.UnspentTX;
@@ -17,7 +16,7 @@ import java.util.LinkedList;
  *
  * @author Biplav
  */
-public class Account implements Serializable{
+public class Account implements Serializable {
 
     private final String name;
     private final PrivateKey privateKey;
@@ -63,10 +62,10 @@ public class Account implements Serializable{
         pubKey = new PublicKey(e, p.multiply(q));
         privateKey = new PrivateKey(d);
     }
-    
-    public static Account create(String name){
+
+    public static Account create(String name) {
         return new Account(name);
-    }    
+    }
 
     public String getName() {
         return name;
@@ -86,21 +85,21 @@ public class Account implements Serializable{
     }
 
     public final void sendTx(double coin, Account receiverAccount, boolean isCoinBase) {
-        Transaction tx = prepareTX(coin,receiverAccount,isCoinBase);      
-        Center.getInstance().broadcastTransaction(tx); 
+        Transaction tx = prepareTX(coin, receiverAccount, isCoinBase);
+        Center.getInstance().broadcastTransaction(tx);
     }
-    
-    public Transaction prepareTX(double coin){
+
+    public Transaction prepareTX(double coin) {
         return prepareTX(coin, this, true);
     }
-    
-    public Transaction prepareTX(double coin, Account receiver, boolean isCoinBase){
+
+    public Transaction prepareTX(double coin, Account receiver, boolean isCoinBase) {
         BigInteger senderAddress = getAddress();
         BigInteger receiverAddress = receiver.getAddress();
-        
+
         Transaction tx = new Transaction(coin + " coins transferred", isCoinBase);
         if (isCoinBase) {
-            tx.addOutput(coin, CryptoService.encrypt(receiverAddress, pubKey));            
+            tx.addOutput(coin, CryptoService.encrypt(receiverAddress, pubKey));
         } else {
             double sum = 0.0;
             LinkedList<UTXO> inputsUtxo = new LinkedList();
@@ -119,14 +118,14 @@ public class Account implements Serializable{
                 double change = sum - coin;
                 if (change > 0) {
                     tx.addOutput(change, CryptoService.encrypt(senderAddress, pubKey));
-                }                
-            }else{
+                }
+            } else {
                 System.out.println("ERROR : Not enough coins");
             }
         }
         return tx;
-    }    
-    
+    }
+
     public double getNumberofCoins() {
         double numberofCoins = 0.0;
         BigInteger address = getAddress();

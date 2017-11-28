@@ -5,6 +5,7 @@
  */
 package core;
 
+import core.common.Center;
 import core.common.CryptoService;
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -23,6 +24,7 @@ public class Transaction implements Serializable {
     private final String timeStamp;
     private final LinkedList<Input> inputs = new LinkedList();
     private final LinkedList<Output> outputs = new LinkedList();
+    private BigInteger blockHash;
 
     public Transaction(String entry, boolean isCoinBase) {
         this.entry = entry;
@@ -40,6 +42,14 @@ public class Transaction implements Serializable {
     public boolean isCoinBase() {
         return coinBase;
     }
+    
+    public BigInteger getBlockHash(){
+        return blockHash;
+    }
+    
+    public void setBlockHash(BigInteger blockHash){
+        this.blockHash = blockHash;
+    }
 
     public void addInput(LinkedList<UTXO> inputsUtxo) {
         inputsUtxo.forEach((utxo) -> {
@@ -54,8 +64,9 @@ public class Transaction implements Serializable {
 
     public void addUTXO() {
         outputs.forEach((out) -> {
-            Center.getInstance().addUTXO(hash(), out.hash(), out.getReceiverAddress(), out.getCoin());
+            UnspentTX.getInstance().addUTXO(new UTXO(hash(), out.hash(), out.getReceiverAddress(), out.getCoin()));
         });
+        
     }
 
     public void removeUTXO() {

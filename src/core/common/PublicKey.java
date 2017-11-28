@@ -12,7 +12,8 @@ import java.math.BigInteger;
  *
  * @author Biplav
  */
-public final class PublicKey implements Serializable{
+public final class PublicKey implements Serializable {
+
     private final BigInteger encryptionKey;
     private final BigInteger primeProduct;
 
@@ -28,9 +29,9 @@ public final class PublicKey implements Serializable{
     public BigInteger getPrimeProduct() {
         return primeProduct;
     }
-    
-    public void display(){
-        System.out.println("encryption key = "+ encryptionKey);
+
+    public void display() {
+        System.out.println("encryption key = " + encryptionKey);
         System.out.println("primeProduct = " + primeProduct);
     }
 }

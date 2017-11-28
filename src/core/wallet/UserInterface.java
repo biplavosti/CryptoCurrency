@@ -6,7 +6,7 @@
 package core.wallet;
 
 import core.common.Account;
-import core.Center;
+import core.common.Center;
 import java.util.List;
 import java.util.Scanner;
 
@@ -72,7 +72,7 @@ public class UserInterface {
     private void display(Account account) {
         int option;
         boolean completed = false;
-        while (!completed) {            
+        while (!completed) {
             System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
             System.out.println("ZZ  Name          : " + account.getName());
             System.out.println("ZZ  Address       : " + account.getEncryptedAddress());
@@ -112,11 +112,11 @@ public class UserInterface {
         System.out.println("ZZ  Input number of Coins : ");
         System.out.println("ZZ");
         int coins = INPUT.nextInt();
-        account.sendTx(coins, ACCOUNTS.get(receipent),false);
+        account.sendTx(coins, ACCOUNTS.get(receipent), false);
         center.showBlockChain();
     }
-        
-    public static void main(String[] args) {               
+
+    public static void main(String[] args) {
         new UserInterface().door();
-    }        
+    }
 }

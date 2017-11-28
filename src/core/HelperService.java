@@ -14,6 +14,7 @@ import java.util.List;
  * @author Biplav
  */
 public class HelperService {
+
     public static BigInteger merkleRoot(BigInteger[] codes) {
         if (codes.length < 1) {
             return BigInteger.valueOf(0);
@@ -43,12 +44,12 @@ public class HelperService {
             return merkleRoot(codes1);
         }
     }
-    
-    public static int getNoOfCoinbaseTX(List<Transaction> transactions){
+
+    public static int getNoOfCoinbaseTX(List<Transaction> transactions) {
         int noOfCoinbaseTX = 0;
-        for (Transaction tx : transactions) {            
+        for (Transaction tx : transactions) {
             if (tx.isCoinBase()) {
-                noOfCoinbaseTX++;                
+                noOfCoinbaseTX++;
                 if (noOfCoinbaseTX > 1) {
                     break;
                 }

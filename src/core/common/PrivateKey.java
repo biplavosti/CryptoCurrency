@@ -12,7 +12,7 @@ import java.math.BigInteger;
  *
  * @author Biplav
  */
-public final class PrivateKey implements Serializable{
+public final class PrivateKey implements Serializable {
 
     private final BigInteger decryptionKey;
 
@@ -25,6 +25,6 @@ public final class PrivateKey implements Serializable{
     }
 
     public void display() {
-        System.out.println("decryption key = " + decryptionKey);        
+        System.out.println("decryption key = " + decryptionKey);
     }
 }

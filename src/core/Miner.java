@@ -5,6 +5,7 @@
  */
 package core;
 
+import core.common.Center;
 import java.math.BigInteger;
 import core.common.Account;
 import java.io.Serializable;
@@ -15,14 +16,16 @@ import java.util.List;
  *
  * @author Biplav
  */
-public class Miner implements Serializable{
+public class Miner implements Serializable {
 
-    BlockChain blockChain;
-    Account account;    
-    
-    public Miner(Account account){
+    private final Account account;
+
+    public Miner(Account account) {
         this.account = account;
-        blockChain = BlockChain.getInstance();
+    }
+
+    public Account getAccount() {
+        return account;
     }
 
     public void receiveTransaction(List<Transaction> transactions) {
@@ -54,13 +57,13 @@ public class Miner implements Serializable{
             return false;
         }
         if (block.confirm()) {
-            if (blockChain.add(block)) {
-                for (Transaction tx : block.getTransactions()) {
-                    tx.removeUTXO();
-                    tx.addUTXO();
-                }
-                return true;
+            BigInteger blockHash = block.getBlockHash();
+            for (Transaction tx : block.getLiveTransactions()) {
+                tx.setBlockHash(blockHash);
+                tx.removeUTXO();
+                tx.addUTXO();
             }
+            BlockChain.getInstance().add(block);
         } else {
             System.out.println("ERROR : Block is not verfied");
         }
@@ -69,6 +72,7 @@ public class Miner implements Serializable{
 
     public Block processTransaction(List<Transaction> transactions) {
         Block block;
+        BlockChain blockChain = BlockChain.getInstance();
         int noOfCoinbaseTX = HelperService.getNoOfCoinbaseTX(transactions);
         if (noOfCoinbaseTX == 0) {
             transactions.add(account.prepareTX(Center.getInstance().COINBASE, account, true));

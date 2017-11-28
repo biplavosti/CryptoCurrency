@@ -10,20 +10,22 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.LinkedList;
 
 /**
  *
  * @author Biplav
  */
-public class UnspentTX {
+public class UnspentTX implements Serializable {
+
     private final LinkedList<UTXO> txOutList;
     private static UnspentTX UNSPENTTXOUT;
-    
-    private UnspentTX(){
+
+    private UnspentTX() {
         txOutList = new LinkedList();
     }
-    
+
     public static UnspentTX getInstance() {
         if (UNSPENTTXOUT == null) {
             try {
@@ -36,26 +38,26 @@ public class UnspentTX {
         }
         return UNSPENTTXOUT;
     }
-    
-    public void addUTXO(UTXO utxo){
+
+    public void addUTXO(UTXO utxo) {
         txOutList.add(utxo);
         save();
     }
-    
-    public void removeUTXO(UTXO utxo){
+
+    public void removeUTXO(UTXO utxo) {
         txOutList.remove(utxo);
         save();
     }
-    
-    public LinkedList<UTXO> getList(){
+
+    public LinkedList<UTXO> getList() {
         return txOutList;
     }
-    
+
     public void save() {
         try {
             FileOutputStream fs = new FileOutputStream("utxo.ser");
             ObjectOutputStream os = new ObjectOutputStream(fs);
-            os.writeObject(this);            
+            os.writeObject(this);
             os.close();
         } catch (IOException ex) {
             System.out.println("ERROR : Could not save UTXO");
