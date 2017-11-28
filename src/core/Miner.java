@@ -7,6 +7,7 @@ package core;
 
 import java.math.BigInteger;
 import core.common.Account;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,20 +15,20 @@ import java.util.List;
  *
  * @author Biplav
  */
-public class Miner {
+public class Miner implements Serializable{
 
     BlockChain blockChain;
-    Account account;
-
-    public Miner(Account account, BlockChain chain) {
+    Account account;    
+    
+    public Miner(Account account){
         this.account = account;
-        blockChain = chain;
+        blockChain = BlockChain.getInstance();
     }
 
     public void receiveTransaction(List<Transaction> transactions) {
         Block block = processTransaction(transactions);
         if (block != null) {
-            Center.broadcastBlock(block);
+            Center.getInstance().broadcastBlock(block);
         }
     }
 
@@ -35,7 +36,7 @@ public class Miner {
         if (transaction.verify()) {
             Block block = accumulateTransactions(transaction);
             if (block != null) {
-                Center.broadcastBlock(block);
+                Center.getInstance().broadcastBlock(block);
             }
         } else {
             System.out.println("ERROR : Transaction is not verified");
@@ -70,7 +71,7 @@ public class Miner {
         Block block;
         int noOfCoinbaseTX = HelperService.getNoOfCoinbaseTX(transactions);
         if (noOfCoinbaseTX == 0) {
-            transactions.add(account.prepareTX(Center.COINBASE, account, true));
+            transactions.add(account.prepareTX(Center.getInstance().COINBASE, account, true));
         } else if (noOfCoinbaseTX > 1) {
             return null;
         }

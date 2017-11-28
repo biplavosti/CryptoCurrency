@@ -30,3 +30,4 @@ dist/
 nbdist/
 .nb-gradle/
 /blockchain.ser
+/center.ser

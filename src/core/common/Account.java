@@ -8,6 +8,7 @@ package core.common;
 import core.Center;
 import core.Transaction;
 import core.UTXO;
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.LinkedList;
 
@@ -15,7 +16,7 @@ import java.util.LinkedList;
  *
  * @author Biplav
  */
-public class Account {
+public class Account implements Serializable{
 
     private final String name;
     private final PrivateKey privateKey;
@@ -85,7 +86,7 @@ public class Account {
 
     public final void sendTx(double coin, Account receiverAccount, boolean isCoinBase) {
         Transaction tx = prepareTX(coin,receiverAccount,isCoinBase);      
-        Center.broadcastTransaction(tx); 
+        Center.getInstance().broadcastTransaction(tx); 
     }
     
     public Transaction prepareTX(double coin){
@@ -102,7 +103,7 @@ public class Account {
         } else {
             double sum = 0.0;
             LinkedList<UTXO> inputsUtxo = new LinkedList();
-            for (UTXO utxo : Center.getUTXO()) {
+            for (UTXO utxo : Center.getInstance().getUTXO()) {
                 if (senderAddress.equals(CryptoService.decrypt(utxo.getReceiverAddress(), privateKey, pubKey))) {
                     sum += utxo.getCoin();
                     inputsUtxo.add(utxo);
@@ -128,7 +129,7 @@ public class Account {
     public double getNumberofCoins() {
         double numberofCoins = 0.0;
         BigInteger address = getAddress();
-        for (UTXO utxo : Center.getUTXO()) {
+        for (UTXO utxo : Center.getInstance().getUTXO()) {
             if (address.equals(CryptoService.decrypt(utxo.getReceiverAddress(), privateKey, pubKey))) {
                 numberofCoins += utxo.getCoin();
             }

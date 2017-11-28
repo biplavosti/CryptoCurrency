@@ -5,13 +5,14 @@
  */
 package core;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 
 /**
  *
  * @author Biplav
  */
-public class UTXO {
+public class UTXO implements Serializable{
     private final BigInteger txHash;
     private final BigInteger txOutHash;
     private final BigInteger receiverAddress;

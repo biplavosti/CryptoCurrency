@@ -12,8 +12,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.LinkedList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -43,11 +41,8 @@ public final class BlockChain implements Serializable {
     }
 
     public boolean add(Block b) {
-        if (chain.add(b)) {
-            save();
-            return true;
-        }
-        return false;
+        
+        return chain.add(b);
     }
 
     public void display() {
@@ -77,7 +72,7 @@ public final class BlockChain implements Serializable {
             os.writeObject(this);
             os.close();
         } catch (IOException ex) {
-            Logger.getLogger(BlockChain.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("ERROR : Could not save BlockChain");
         }
     }
 }

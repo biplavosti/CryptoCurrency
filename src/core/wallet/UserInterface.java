@@ -16,7 +16,8 @@ import java.util.Scanner;
  */
 public class UserInterface {
 
-    private static final List<Account> ACCOUNTS = Center.getUsers();
+    private final Center center = Center.getInstance();
+    private final List<Account> ACCOUNTS = center.getUsers();
     private static final Scanner INPUT = new Scanner(System.in);
 
     private void door() {
@@ -48,6 +49,7 @@ public class UserInterface {
                     break;
                 case 0:
                     completed = true;
+                    center.save();
                     break;
                 case 1:
                     System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
@@ -56,11 +58,11 @@ public class UserInterface {
                     System.out.println("ZZ Name : ");
                     INPUT.nextLine();
                     String name = INPUT.nextLine();
-                    Center.createAccount(name);
+                    center.createAccount(name);
                     break;
                 case 3:
-                    Center.mineFirstCoin();
-                    Center.showBlockChain();
+                    center.mineFirstCoin();
+                    center.showBlockChain();
                     break;
             }
 
@@ -111,7 +113,7 @@ public class UserInterface {
         System.out.println("ZZ");
         int coins = INPUT.nextInt();
         account.sendTx(coins, ACCOUNTS.get(receipent),false);
-        Center.showBlockChain();
+        center.showBlockChain();
     }
         
     public static void main(String[] args) {               

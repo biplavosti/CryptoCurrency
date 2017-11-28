@@ -5,13 +5,14 @@
  */
 package core.common;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 
 /**
  *
  * @author Biplav
  */
-public final class PublicKey {
+public final class PublicKey implements Serializable{
     private final BigInteger encryptionKey;
     private final BigInteger primeProduct;
 
