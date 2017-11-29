@@ -3,10 +3,8 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package core;
+package core.common;
 
-import core.common.CryptoService;
-import core.common.PublicKey;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
@@ -44,28 +42,28 @@ public class Transaction implements Serializable {
     public boolean isCoinBase() {
         return coinBase;
     }
-    
-    public BigInteger getBlockHash(){
+
+    public BigInteger getBlockHash() {
         return blockHash;
     }
-    
-    public void setBlockHash(BigInteger blockHash){
+
+    public void setBlockHash(BigInteger blockHash) {
         this.blockHash = blockHash;
     }
-    
-    public BigInteger getEncryptedHash(){
+
+    public BigInteger getEncryptedHash() {
         return encryptedHash;
     }
-    
-    public void setEncryptedHash(BigInteger txEncHash){
+
+    public void setEncryptedHash(BigInteger txEncHash) {
         encryptedHash = txEncHash;
     }
-    
-    public PublicKey getSenderPubKey(){
+
+    public PublicKey getSenderPubKey() {
         return senderPubKey;
     }
-    
-    public void setSenderPubKey(PublicKey pubKey){
+
+    public void setSenderPubKey(PublicKey pubKey) {
         senderPubKey = pubKey;
     }
 
@@ -82,13 +80,13 @@ public class Transaction implements Serializable {
 
     public void addUTXO() {
         outputs.forEach((out) -> {
-            UnspentTX.getInstance().addUTXO(new UTXO(hash(), out.hash(), out.getReceiverAddress(), out.getCoin()));
+            UTXOPool.getInstance().addUTXO(new UTXO(hash(), out.hash(), out.getReceiverAddress(), out.getCoin()));
         });
-        
+
     }
 
     public void removeUTXO() {
-        LinkedList<UTXO> UTXOList = UnspentTX.getInstance().getList();
+        LinkedList<UTXO> UTXOList = UTXOPool.getInstance().getList();
         for (Input input : inputs) {
             for (UTXO utxo : UTXOList) {
                 if (input.getPrevTxHash() == utxo.getTxHash()
@@ -135,10 +133,10 @@ public class Transaction implements Serializable {
             }
         }
 
-        if(!hash().equals(CryptoService.decrypt(encryptedHash, senderPubKey))){
+        if (!hash().equals(CryptoService.decrypt(encryptedHash, senderPubKey))) {
             return false;
         }
-        
+
         double inputSum = 0.0;
         double outputSum = 0.0;
         for (Input input : inputs) {
@@ -152,7 +150,7 @@ public class Transaction implements Serializable {
         for (Output out : outputs) {
             outputSum += out.getCoin();
         }
-        return inputSum == outputSum;
+        return inputSum >= outputSum;
     }
 
     private class Input implements Serializable {
@@ -182,11 +180,11 @@ public class Transaction implements Serializable {
         }
 
         private BigInteger hash() {
-            return CryptoService.hash(prevTxHash + "" + prevTxOutputHash);
+            return CryptoService.hash(timeStamp + "" + prevTxHash + "" + prevTxOutputHash);
         }
 
         private UTXO getUTXO() {
-            for (UTXO utxo : UnspentTX.getInstance().getList()) {
+            for (UTXO utxo : UTXOPool.getInstance().getList()) {
                 if (getPrevTxHash() == utxo.getTxHash()
                         && getPrevTxOutputHash() == utxo.getTxOutHash()) {
                     return utxo;
@@ -224,7 +222,7 @@ public class Transaction implements Serializable {
         }
 
         private BigInteger hash() {
-            return CryptoService.hash(receiverAddress + "" + coin);
+            return CryptoService.hash(timeStamp + "" + receiverAddress + "" + coin);
         }
 
         private boolean verify() {

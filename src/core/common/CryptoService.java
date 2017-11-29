@@ -62,8 +62,8 @@ public class CryptoService {
     public static BigInteger encrypt(BigInteger msg, PublicKey pubKey) {
         return encrypt(msg, pubKey.getEncryptionKey(), pubKey.getPrimeProduct());
     }
-    
-    public static BigInteger encrypt(BigInteger msg, PrivateKey privateKey, PublicKey pubKey){
+
+    public static BigInteger encrypt(BigInteger msg, PrivateKey privateKey, PublicKey pubKey) {
         return encrypt(msg, privateKey.getDecryptionKey(), pubKey.getPrimeProduct());
     }
 
@@ -74,7 +74,7 @@ public class CryptoService {
     public static BigInteger decrypt(BigInteger msg, PrivateKey privateKey, PublicKey pubKey) {
         return decrypt(msg, privateKey.getDecryptionKey(), pubKey.getPrimeProduct());
     }
-    
+
     public static BigInteger decrypt(BigInteger msg, PublicKey pubKey) {
         return decrypt(msg, pubKey.getEncryptionKey(), pubKey.getPrimeProduct());
     }

@@ -5,6 +5,7 @@
  */
 package core;
 
+import core.common.Transaction;
 import core.common.CryptoService;
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -50,7 +51,7 @@ public class Block implements Serializable {
     }
 
     public List<Transaction> getStoredTransactions() {
-        return TransactionList.getInstance().getList(getBlockHash());
+        return TransactionPool.getInstance().getList(getBlockHash());
     }
 
     public List<Transaction> getLiveTransactions() {

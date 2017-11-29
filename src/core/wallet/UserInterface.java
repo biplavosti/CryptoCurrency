@@ -62,7 +62,6 @@ public class UserInterface {
                     break;
                 case 3:
                     center.mineFirstCoin();
-                    center.showBlockChain();
                     break;
             }
 
@@ -111,9 +110,8 @@ public class UserInterface {
         System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
         System.out.println("ZZ  Input number of Coins : ");
         System.out.println("ZZ");
-        int coins = INPUT.nextInt();
+        double coins = INPUT.nextDouble();
         account.sendTx(coins, ACCOUNTS.get(receipent), false);
-        center.showBlockChain();
     }
 
     public static void main(String[] args) {

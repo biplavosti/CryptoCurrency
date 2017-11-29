@@ -5,6 +5,7 @@
  */
 package core;
 
+import core.common.Transaction;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -19,23 +20,23 @@ import java.util.List;
  *
  * @author Biplav
  */
-public class TransactionList implements Serializable {
+public class TransactionPool implements Serializable {
 
     private final LinkedList<Transaction> txList;
-    private static TransactionList TXLIST;
+    private static TransactionPool TXLIST;
 
-    private TransactionList() {
+    private TransactionPool() {
         txList = new LinkedList();
     }
 
-    public static TransactionList getInstance() {
+    public static TransactionPool getInstance() {
         if (TXLIST == null) {
             try {
                 FileInputStream fs = new FileInputStream("transactions.ser");
                 ObjectInputStream os = new ObjectInputStream(fs);
-                TXLIST = (TransactionList) os.readObject();
+                TXLIST = (TransactionPool) os.readObject();
             } catch (IOException | ClassNotFoundException e) {
-                TXLIST = new TransactionList();
+                TXLIST = new TransactionPool();
             }
         }
         return TXLIST;
@@ -74,7 +75,7 @@ public class TransactionList implements Serializable {
 
     public LinkedList<Transaction> getList(final BigInteger blockHash) {
         LinkedList<Transaction> list = new LinkedList();
-        for (Transaction tx : txList) {            
+        for (Transaction tx : txList) {
             if (blockHash.equals(tx.getBlockHash())) {
                 list.add(tx);
             }

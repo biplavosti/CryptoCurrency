@@ -21,11 +21,11 @@ public final class BlockChain implements Serializable {
 
     private final LinkedList<Block> chain;
     private static BlockChain BLOCKCHAIN;
-    private transient static TransactionList txList;
+    private transient static TransactionPool txList;
 
     private BlockChain() {
         chain = new LinkedList();
-        txList = TransactionList.getInstance();
+        txList = TransactionPool.getInstance();
     }
 
     public static BlockChain getInstance() {
@@ -34,7 +34,7 @@ public final class BlockChain implements Serializable {
                 FileInputStream fs = new FileInputStream("blockchain.ser");
                 ObjectInputStream os = new ObjectInputStream(fs);
                 BLOCKCHAIN = (BlockChain) os.readObject();
-                txList = TransactionList.getInstance();
+                txList = TransactionPool.getInstance();
                 BLOCKCHAIN.display();
             } catch (IOException | ClassNotFoundException e) {
                 BLOCKCHAIN = new BlockChain();
@@ -47,6 +47,7 @@ public final class BlockChain implements Serializable {
         chain.add(block);
         txList.add(block.getLiveTransactions());
         save();
+        display();
         return true;
     }
 

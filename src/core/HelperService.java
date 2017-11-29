@@ -5,6 +5,7 @@
  */
 package core;
 
+import core.common.Transaction;
 import core.common.CryptoService;
 import java.math.BigInteger;
 import java.util.List;

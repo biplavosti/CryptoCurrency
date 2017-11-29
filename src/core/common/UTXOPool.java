@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package core;
+package core.common;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -17,23 +17,23 @@ import java.util.LinkedList;
  *
  * @author Biplav
  */
-public class UnspentTX implements Serializable {
+public class UTXOPool implements Serializable {
 
     private final LinkedList<UTXO> txOutList;
-    private static UnspentTX UNSPENTTXOUT;
+    private static UTXOPool UNSPENTTXOUT;
 
-    private UnspentTX() {
+    private UTXOPool() {
         txOutList = new LinkedList();
     }
 
-    public static UnspentTX getInstance() {
+    public static UTXOPool getInstance() {
         if (UNSPENTTXOUT == null) {
             try {
                 FileInputStream fs = new FileInputStream("utxo.ser");
                 ObjectInputStream os = new ObjectInputStream(fs);
-                UNSPENTTXOUT = (UnspentTX) os.readObject();
+                UNSPENTTXOUT = (UTXOPool) os.readObject();
             } catch (IOException | ClassNotFoundException e) {
-                UNSPENTTXOUT = new UnspentTX();
+                UNSPENTTXOUT = new UTXOPool();
             }
         }
         return UNSPENTTXOUT;

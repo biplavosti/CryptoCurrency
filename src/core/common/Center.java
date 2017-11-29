@@ -8,10 +8,6 @@ package core.common;
 import core.Block;
 import core.BlockChain;
 import core.Miner;
-import core.Transaction;
-import core.UTXO;
-import core.UnspentTX;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.io.FileInputStream;
@@ -28,17 +24,12 @@ import java.io.Serializable;
 public class Center implements Serializable {
 
     private final List<Account> USERS;
-    private transient BlockChain BLOCKCHAIN;
     private final Miner MINER;
-    private transient UnspentTX UNSPENTTXOUT;
     public transient double COINBASE = 25;
-
     private static Center CENTER;
 
     private Center() {
         USERS = new ArrayList();
-        BLOCKCHAIN = BlockChain.getInstance();
-        UNSPENTTXOUT = UnspentTX.getInstance();
         MINER = new Miner(createAccount("Miner"));
         COINBASE = 25;
     }
@@ -49,8 +40,8 @@ public class Center implements Serializable {
                 FileInputStream fs = new FileInputStream("center.ser");
                 ObjectInputStream os = new ObjectInputStream(fs);
                 CENTER = (Center) os.readObject();
-                CENTER.BLOCKCHAIN = BlockChain.getInstance();
-                CENTER.UNSPENTTXOUT = UnspentTX.getInstance();
+                BlockChain.getInstance();
+                UTXOPool.getInstance();
                 CENTER.COINBASE = 25;
             } catch (IOException | ClassNotFoundException e) {
                 CENTER = new Center();
@@ -65,23 +56,6 @@ public class Center implements Serializable {
 
     public Miner getMiner() {
         return MINER;
-    }
-
-    public BlockChain getBlockChain() {
-        return BLOCKCHAIN;
-    }
-
-    public UnspentTX getUTXO() {
-        return UNSPENTTXOUT;
-    }
-
-    public void addUTXO(BigInteger txHash, BigInteger outHash,
-            BigInteger address, double coin) {
-        UNSPENTTXOUT.addUTXO(new UTXO(txHash, outHash, address, coin));
-    }
-
-    public void removeUnspent(UTXO utxo) {
-        UNSPENTTXOUT.removeUTXO(utxo);
     }
 
     public void broadcastTransaction(List<Transaction> transaction) {
@@ -105,10 +79,6 @@ public class Center implements Serializable {
         }
         USERS.add(user);
         return user;
-    }
-
-    public void showBlockChain() {
-        BLOCKCHAIN.display();
     }
 
     public final Account createAccount(String name) {

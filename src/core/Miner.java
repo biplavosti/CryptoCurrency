@@ -6,6 +6,7 @@
 package core;
 
 import core.common.Center;
+import core.common.Transaction;
 import java.math.BigInteger;
 import core.common.Account;
 import java.io.Serializable;
@@ -75,7 +76,7 @@ public class Miner implements Serializable {
         BlockChain blockChain = BlockChain.getInstance();
         int noOfCoinbaseTX = HelperService.getNoOfCoinbaseTX(transactions);
         if (noOfCoinbaseTX == 0) {
-            transactions.add(account.prepareTX(Center.getInstance().COINBASE, account, true));
+            transactions.add(account.prepareTX(Center.getInstance().COINBASE));
         } else if (noOfCoinbaseTX > 1) {
             return null;
         }
