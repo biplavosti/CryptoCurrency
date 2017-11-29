@@ -122,6 +122,8 @@ public class Account implements Serializable {
             } else {
                 System.out.println("ERROR : Not enough coins");
             }
+            tx.setEncryptedHash(CryptoService.encrypt(tx.hash(), privateKey, pubKey));
+            tx.setSenderPubKey(pubKey);
         }
         return tx;
     }

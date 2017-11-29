@@ -6,6 +6,7 @@
 package core;
 
 import core.common.CryptoService;
+import core.common.PublicKey;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.text.SimpleDateFormat;
@@ -24,6 +25,8 @@ public class Transaction implements Serializable {
     private final LinkedList<Input> inputs = new LinkedList();
     private final LinkedList<Output> outputs = new LinkedList();
     private BigInteger blockHash;
+    private PublicKey senderPubKey;
+    private BigInteger encryptedHash;
 
     public Transaction(String entry, boolean isCoinBase) {
         this.entry = entry;
@@ -48,6 +51,22 @@ public class Transaction implements Serializable {
     
     public void setBlockHash(BigInteger blockHash){
         this.blockHash = blockHash;
+    }
+    
+    public BigInteger getEncryptedHash(){
+        return encryptedHash;
+    }
+    
+    public void setEncryptedHash(BigInteger txEncHash){
+        encryptedHash = txEncHash;
+    }
+    
+    public PublicKey getSenderPubKey(){
+        return senderPubKey;
+    }
+    
+    public void setSenderPubKey(PublicKey pubKey){
+        senderPubKey = pubKey;
     }
 
     public void addInput(LinkedList<UTXO> inputsUtxo) {
@@ -116,6 +135,10 @@ public class Transaction implements Serializable {
             }
         }
 
+        if(!hash().equals(CryptoService.decrypt(encryptedHash, senderPubKey))){
+            return false;
+        }
+        
         double inputSum = 0.0;
         double outputSum = 0.0;
         for (Input input : inputs) {

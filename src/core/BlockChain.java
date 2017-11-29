@@ -52,14 +52,13 @@ public final class BlockChain implements Serializable {
 
     public void display() {
         System.out.println();
-        System.out.println("Block Chain-> " + chain.size() + " === " + txList.getList().size());
+        System.out.println("Block Chain-> ");
         for (Block block : chain) {
             System.out.println();
             block.display();
             System.out.println();
         }
         System.out.println("<-Block Chain");
-        getLast().display();
         System.out.println();
     }
 

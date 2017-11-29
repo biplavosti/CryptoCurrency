@@ -62,13 +62,21 @@ public class CryptoService {
     public static BigInteger encrypt(BigInteger msg, PublicKey pubKey) {
         return encrypt(msg, pubKey.getEncryptionKey(), pubKey.getPrimeProduct());
     }
+    
+    public static BigInteger encrypt(BigInteger msg, PrivateKey privateKey, PublicKey pubKey){
+        return encrypt(msg, privateKey.getDecryptionKey(), pubKey.getPrimeProduct());
+    }
 
     private static BigInteger decrypt(BigInteger msg, BigInteger key, BigInteger product) {
         return mod(msg, key, product);
     }
 
     public static BigInteger decrypt(BigInteger msg, PrivateKey privateKey, PublicKey pubKey) {
-        return encrypt(msg, privateKey.getDecryptionKey(), pubKey.getPrimeProduct());
+        return decrypt(msg, privateKey.getDecryptionKey(), pubKey.getPrimeProduct());
+    }
+    
+    public static BigInteger decrypt(BigInteger msg, PublicKey pubKey) {
+        return decrypt(msg, pubKey.getEncryptionKey(), pubKey.getPrimeProduct());
     }
 
     public static BigInteger generatePrime(int bit) {
