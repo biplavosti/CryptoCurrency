@@ -19,34 +19,37 @@ import java.util.List;
  */
 public class Block implements Serializable {
 
-    private final BigInteger prevHash;
-    private transient final List<Transaction> transactions;
+    private final String prevHash;
+    private List<Transaction> transactions;
     private final String timeStamp;
-    private final BigInteger merkle_root;
+    private final String merkle_root;
     private BigInteger nonce = BigInteger.ZERO;
 
-    public Block(BigInteger prevHash, List<Transaction> transactions) {
+    public Block(String prevHash, List<Transaction> transactions) {
         this.prevHash = prevHash;
         this.transactions = transactions;
         timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-        BigInteger codes[] = new BigInteger[transactions.size()];
+        String codes[] = new String[transactions.size()];
         for (int i = 0; i < transactions.size(); i++) {
             codes[i] = transactions.get(i).hash();
         }
         merkle_root = HelperService.merkleRoot(codes);
     }
 
-    public final BigInteger hash() {
-        return CryptoService.hash(CryptoService.hash(
+    private String hash() {
+        return CryptoService.hashTwice(
                 merkle_root + ""
                 + timeStamp + ""
                 + prevHash + ""
                 + nonce
-        ) + ""
         );
     }
 
-    public BigInteger getPrevHash() {
+    public void setTransactions(List<Transaction> tx) {
+        transactions = tx;
+    }
+
+    public String getPrevHash() {
         return prevHash;
     }
 
@@ -58,7 +61,7 @@ public class Block implements Serializable {
         return transactions;
     }
 
-    public BigInteger getBlockHash() {
+    public String getBlockHash() {
         return hash();
     }
 
@@ -72,9 +75,9 @@ public class Block implements Serializable {
 
     public void display() {
         System.out.println("Time Stamp    -> " + timeStamp);
-        System.out.println("Previous Hash -> " + prevHash.toString());
+        System.out.println("Previous Hash -> " + prevHash);
         System.out.println("Current Hash  -> " + this.getBlockHash());
-        System.out.println("Merkle Root   -> " + merkle_root.toString());
+        System.out.println("Merkle Root   -> " + merkle_root);
         System.out.println("Nonce         -> " + nonce);
         System.out.println("Transactions  -> ");
         for (Transaction tx : getStoredTransactions()) {
@@ -99,6 +102,6 @@ public class Block implements Serializable {
     }
 
     public boolean verify() {
-        return getBlockHash().remainder(BigInteger.valueOf(100)).equals(BigInteger.valueOf(0));
+        return new BigInteger(getBlockHash()).remainder(BigInteger.valueOf(100)).equals(BigInteger.valueOf(0));
     }
 }

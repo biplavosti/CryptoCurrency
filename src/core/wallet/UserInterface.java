@@ -5,8 +5,13 @@
  */
 package core.wallet;
 
+import core.BlockChain;
+import core.TransactionPool;
 import core.common.Account;
 import core.common.Center;
+import core.common.UTXOPool;
+import java.io.IOException;
+import java.net.Socket;
 import java.util.List;
 import java.util.Scanner;
 
@@ -49,7 +54,15 @@ public class UserInterface {
                     break;
                 case 0:
                     completed = true;
+                    Center.OPEN = false;
                     center.save();
+                     {
+                        try {
+                            center.new Client(new Socket("localhost", center.thisServerPort)).run(this);
+                        } catch (IOException ex) {
+
+                        }
+                    }
                     break;
                 case 1:
                     System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
@@ -64,8 +77,8 @@ public class UserInterface {
                     center.mineFirstCoin();
                     break;
             }
-
         }
+        System.out.println("THE END");
     }
 
     private void display(Account account) {
@@ -74,7 +87,7 @@ public class UserInterface {
         while (!completed) {
             System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
             System.out.println("ZZ  Name          : " + account.getName());
-            System.out.println("ZZ  Address       : " + account.getEncryptedAddress());
+            System.out.println("ZZ  Address       : " + account.getAddress());
             System.out.println("ZZ  Coin          : " + account.getNumberofCoins());
             System.out.println("ZZ");
             System.out.println("ZZ");
@@ -99,22 +112,22 @@ public class UserInterface {
     }
 
     private void sendInteface(Account account) {
+        INPUT.reset();
         System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
-        System.out.println("ZZ  Receipents");
-        for (int i = 0; i < ACCOUNTS.size(); i++) {
-            System.out.println("ZZ    " + i + " : " + ACCOUNTS.get(i).getName());
-        }
-        System.out.println("ZZ");
-        System.out.println("Please choose a receipent : ");
-        int receipent = INPUT.nextInt();
+        System.out.println("ZZ  Enter receipent address :");
+        INPUT.nextLine();
+        String receipent = INPUT.nextLine();
         System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
         System.out.println("ZZ  Input number of Coins : ");
         System.out.println("ZZ");
         double coins = INPUT.nextDouble();
-        account.sendTx(coins, ACCOUNTS.get(receipent), false);
+        account.sendTx(coins, receipent, false);
     }
 
     public static void main(String[] args) {
+        TransactionPool.getInstance();
+        BlockChain.getInstance();
+        UTXOPool.getInstance();
         new UserInterface().door();
     }
 }

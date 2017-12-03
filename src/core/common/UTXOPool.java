@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.net.Socket;
 import java.util.LinkedList;
 
 /**
@@ -33,8 +34,23 @@ public class UTXOPool implements Serializable {
                 ObjectInputStream os = new ObjectInputStream(fs);
                 UNSPENTTXOUT = (UTXOPool) os.readObject();
             } catch (IOException | ClassNotFoundException e) {
-                UNSPENTTXOUT = new UTXOPool();
+                Center center = Center.getInstance();
+                try {
+                    Object object = center.new Client(new Socket("localhost",
+                            center.peerServerPort)).run("getUTXOPool");
+                    if (object == null) {
+                        UNSPENTTXOUT = new UTXOPool();
+                    } else {
+                        UNSPENTTXOUT = (UTXOPool) object;
+                        UNSPENTTXOUT.save();
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    UNSPENTTXOUT = new UTXOPool();
+                }
             }
+            UNSPENTTXOUT.display();
+            System.out.println("UTXOPool Started");
         }
         return UNSPENTTXOUT;
     }
@@ -58,9 +74,22 @@ public class UTXOPool implements Serializable {
             FileOutputStream fs = new FileOutputStream("utxo.ser");
             ObjectOutputStream os = new ObjectOutputStream(fs);
             os.writeObject(this);
+            os.flush();
             os.close();
         } catch (IOException ex) {
             System.out.println("ERROR : Could not save UTXO");
         }
+    }
+
+    public void display() {
+        System.out.println();
+        System.out.println("UTXO POOL-> ");
+        for (UTXO utxo : txOutList) {
+            System.out.println();
+            utxo.display();
+            System.out.println();
+        }
+        System.out.println("<-UTXO POOL");
+        System.out.println();
     }
 }

@@ -5,6 +5,7 @@
  */
 package core;
 
+import core.common.Center;
 import core.common.Transaction;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -12,7 +13,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.math.BigInteger;
+import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -36,8 +37,23 @@ public class TransactionPool implements Serializable {
                 ObjectInputStream os = new ObjectInputStream(fs);
                 TXLIST = (TransactionPool) os.readObject();
             } catch (IOException | ClassNotFoundException e) {
-                TXLIST = new TransactionPool();
+                Center center = Center.getInstance();
+                try {
+                    Object object = center.new Client(new Socket("localhost",
+                            center.peerServerPort)).run("getTXPool");
+                    if (object == null) {
+                        TXLIST = new TransactionPool();
+                    } else {
+                        TXLIST = (TransactionPool) object;
+                        TXLIST.save();
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    TXLIST = new TransactionPool();
+                }
             }
+            TXLIST.display();
+            System.out.println("TransactionPool Started");
         }
         return TXLIST;
     }
@@ -73,7 +89,7 @@ public class TransactionPool implements Serializable {
         return txList;
     }
 
-    public LinkedList<Transaction> getList(final BigInteger blockHash) {
+    public LinkedList<Transaction> getList(final String blockHash) {
         LinkedList<Transaction> list = new LinkedList();
         for (Transaction tx : txList) {
             if (blockHash.equals(tx.getBlockHash())) {
@@ -81,5 +97,17 @@ public class TransactionPool implements Serializable {
             }
         }
         return list;
+    }
+
+    public void display() {
+        System.out.println();
+        System.out.println("Transaction POOL-> ");
+        for (Transaction tx : txList) {
+            System.out.println();
+            tx.display();
+            System.out.println();
+        }
+        System.out.println("<-Transaction POOL");
+        System.out.println();
     }
 }

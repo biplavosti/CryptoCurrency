@@ -6,7 +6,6 @@
 package core.common;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
@@ -22,9 +21,9 @@ public class Transaction implements Serializable {
     private final String timeStamp;
     private final LinkedList<Input> inputs = new LinkedList();
     private final LinkedList<Output> outputs = new LinkedList();
-    private BigInteger blockHash;
-    private PublicKey senderPubKey;
-    private BigInteger encryptedHash;
+    private String blockHash;
+    private String senderAddress;
+    private String encryptedHash;
 
     public Transaction(String entry, boolean isCoinBase) {
         this.entry = entry;
@@ -32,7 +31,22 @@ public class Transaction implements Serializable {
         timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
     }
 
-    public final BigInteger hash() {
+    public Transaction(Transaction tx) {
+        entry = tx.entry;
+        coinBase = tx.coinBase;
+        timeStamp = tx.timeStamp;
+        for (Input input : tx.inputs) {
+            inputs.add(input);
+        }
+        for (Output out : tx.outputs) {
+            outputs.add(out);
+        }
+        blockHash = tx.blockHash;
+        senderAddress = tx.senderAddress;
+        encryptedHash = tx.encryptedHash;
+    }
+
+    public final String hash() {
         return CryptoService.hash(
                 entry + ""
                 + timeStamp
@@ -43,28 +57,28 @@ public class Transaction implements Serializable {
         return coinBase;
     }
 
-    public BigInteger getBlockHash() {
+    public String getBlockHash() {
         return blockHash;
     }
 
-    public void setBlockHash(BigInteger blockHash) {
+    public void setBlockHash(String blockHash) {
         this.blockHash = blockHash;
     }
 
-    public BigInteger getEncryptedHash() {
+    public String getEncryptedHash() {
         return encryptedHash;
     }
 
-    public void setEncryptedHash(BigInteger txEncHash) {
+    public void setEncryptedHash(String txEncHash) {
         encryptedHash = txEncHash;
     }
 
-    public PublicKey getSenderPubKey() {
-        return senderPubKey;
+    public String getSenderAddress() {
+        return senderAddress;
     }
 
-    public void setSenderPubKey(PublicKey pubKey) {
-        senderPubKey = pubKey;
+    public void setSenderAddress(String address) {
+        senderAddress = address;
     }
 
     public void addInput(LinkedList<UTXO> inputsUtxo) {
@@ -73,7 +87,7 @@ public class Transaction implements Serializable {
         });
     }
 
-    public void addOutput(double coin, BigInteger address) {
+    public void addOutput(double coin, String address) {
         Output out = new Output(coin, address);
         outputs.add(out);
     }
@@ -89,14 +103,13 @@ public class Transaction implements Serializable {
         LinkedList<UTXO> UTXOList = UTXOPool.getInstance().getList();
         for (Input input : inputs) {
             for (UTXO utxo : UTXOList) {
-                if (input.getPrevTxHash() == utxo.getTxHash()
-                        && input.getPrevTxOutputHash() == utxo.getTxOutHash()) {
+                if (input.getPrevTxHash().equals(utxo.getTxHash())
+                        && input.getPrevTxOutputHash().equals(utxo.getTxOutHash())) {
                     UTXOList.remove(utxo);
                     break;
                 }
             }
         }
-
     }
 
     public void display() {
@@ -133,15 +146,19 @@ public class Transaction implements Serializable {
             }
         }
 
+        PublicKey senderPubKey = CryptoService.generatePubKey(senderAddress);
         if (!hash().equals(CryptoService.decrypt(encryptedHash, senderPubKey))) {
             return false;
         }
 
         double inputSum = 0.0;
         double outputSum = 0.0;
+        final String senderAddressHashEncrypted = CryptoService.encrypt(CryptoService.hash(senderAddress), senderPubKey);
         for (Input input : inputs) {
             UTXO matchedUtxo = input.getUTXO();
             if (matchedUtxo == null) {
+                return false;
+            } else if (!senderAddressHashEncrypted.equals(matchedUtxo.getReceiverAddress())) {
                 return false;
             } else {
                 inputSum += matchedUtxo.getCoin();
@@ -155,38 +172,38 @@ public class Transaction implements Serializable {
 
     private class Input implements Serializable {
 
-        private BigInteger prevTxHash;
-        private BigInteger prevTxOutputHash;
+        private String prevTxHash;
+        private String prevTxOutputHash;
 
-        private Input(BigInteger prevTxHash, BigInteger prevTxOutputHash) {
+        private Input(String prevTxHash, String prevTxOutputHash) {
             this.prevTxHash = prevTxHash;
             this.prevTxOutputHash = prevTxOutputHash;
         }
 
-        private BigInteger getPrevTxHash() {
+        private String getPrevTxHash() {
             return prevTxHash;
         }
 
-        private void setPrevTxHash(BigInteger prevTxHash) {
+        private void setPrevTxHash(String prevTxHash) {
             this.prevTxHash = prevTxHash;
         }
 
-        private BigInteger getPrevTxOutputHash() {
+        private String getPrevTxOutputHash() {
             return prevTxOutputHash;
         }
 
-        private void setPrevTxOutputHash(BigInteger prevTxOutputHash) {
+        private void setPrevTxOutputHash(String prevTxOutputHash) {
             this.prevTxOutputHash = prevTxOutputHash;
         }
 
-        private BigInteger hash() {
+        private String hash() {
             return CryptoService.hash(timeStamp + "" + prevTxHash + "" + prevTxOutputHash);
         }
 
         private UTXO getUTXO() {
             for (UTXO utxo : UTXOPool.getInstance().getList()) {
-                if (getPrevTxHash() == utxo.getTxHash()
-                        && getPrevTxOutputHash() == utxo.getTxOutHash()) {
+                if (prevTxHash.equals(utxo.getTxHash())
+                        && prevTxOutputHash.equals(utxo.getTxOutHash())) {
                     return utxo;
                 }
             }
@@ -198,9 +215,9 @@ public class Transaction implements Serializable {
     private class Output implements Serializable {
 
         private Double coin;
-        private BigInteger receiverAddress;
+        private String receiverAddress;
 
-        private Output(double coin, BigInteger receiverAddress) {
+        private Output(double coin, String receiverAddress) {
             this.coin = coin;
             this.receiverAddress = receiverAddress;
         }
@@ -213,15 +230,15 @@ public class Transaction implements Serializable {
             this.coin = coin;
         }
 
-        private BigInteger getReceiverAddress() {
+        private String getReceiverAddress() {
             return receiverAddress;
         }
 
-        private void setReceiverAddress(BigInteger receiverAddress) {
+        private void setReceiverAddress(String receiverAddress) {
             this.receiverAddress = receiverAddress;
         }
 
-        private BigInteger hash() {
+        private String hash() {
             return CryptoService.hash(timeStamp + "" + receiverAddress + "" + coin);
         }
 

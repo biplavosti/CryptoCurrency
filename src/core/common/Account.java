@@ -57,6 +57,7 @@ public class Account implements Serializable {
         }
 
         pubKey = new PublicKey(e, p.multiply(q));
+        pubKey.display();
         privateKey = new PrivateKey(d);
     }
 
@@ -68,8 +69,9 @@ public class Account implements Serializable {
         return name;
     }
 
-    public final BigInteger getAddress() {
-        return CryptoService.hash(pubKey.getEncryptionKey() + "" + pubKey.getPrimeProduct());
+    public final String getAddress() {
+        //return pubKey.hash();
+        return CryptoService.generateAddressPubKey(pubKey);
     }
 
     public void display() {
@@ -78,30 +80,31 @@ public class Account implements Serializable {
     }
 
     private void sendTx(double coin) {
-        sendTx(coin, this, true);
+        sendTx(coin, this.getAddress(), true);
     }
 
-    public final void sendTx(double coin, Account receiverAccount, boolean isCoinBase) {
-        Transaction tx = prepareTX(coin, receiverAccount, isCoinBase);
+    public final void sendTx(double coin, String receiverAddress, boolean isCoinBase) {
+        Transaction tx = prepareTX(coin, receiverAddress, isCoinBase);
         Center.getInstance().broadcastTransaction(tx);
     }
 
     public Transaction prepareTX(double coin) {
-        return prepareTX(coin, this, true);
+        return prepareTX(coin, this.getAddress(), true);
     }
 
-    public Transaction prepareTX(double coin, Account receiver, boolean isCoinBase) {
-        BigInteger senderAddress = getAddress();
-        BigInteger receiverAddress = receiver.getAddress();
+    public Transaction prepareTX(double coin, String receiverAddress, boolean isCoinBase) {
+        String senderAddressHash = CryptoService.hash(getAddress());
+        String receiverAddressHash = CryptoService.hash(receiverAddress);
 
         Transaction tx = new Transaction(coin + " coins transferred", isCoinBase);
         if (isCoinBase) {
-            tx.addOutput(coin, CryptoService.encrypt(receiverAddress, pubKey));
+            tx.addOutput(coin, CryptoService.encrypt(receiverAddressHash, pubKey));
         } else {
             double sum = 0.0;
             LinkedList<UTXO> inputsUtxo = new LinkedList();
+            String senderAddressHashEncrypted = CryptoService.encrypt(senderAddressHash, pubKey);
             for (UTXO utxo : UTXOPool.getInstance().getList()) {
-                if (senderAddress.equals(CryptoService.decrypt(utxo.getReceiverAddress(), privateKey, pubKey))) {
+                if (senderAddressHashEncrypted.equals(utxo.getReceiverAddress())) {
                     sum += utxo.getCoin();
                     inputsUtxo.add(utxo);
                     if (sum >= coin) {
@@ -111,23 +114,23 @@ public class Account implements Serializable {
             }
             if (sum >= coin) {
                 tx.addInput(inputsUtxo);
-                tx.addOutput(coin, CryptoService.encrypt(receiverAddress, receiver.pubKey));
+                tx.addOutput(coin, CryptoService.encrypt(receiverAddressHash, CryptoService.generatePubKey(receiverAddress)));
                 double change = sum - coin;
                 if (change > 0) {
-                    tx.addOutput(change, CryptoService.encrypt(senderAddress, pubKey));
+                    tx.addOutput(change, CryptoService.encrypt(senderAddressHash, pubKey));
                 }
             } else {
                 System.out.println("ERROR : Not enough coins");
             }
             tx.setEncryptedHash(CryptoService.encrypt(tx.hash(), privateKey, pubKey));
-            tx.setSenderPubKey(pubKey);
+            tx.setSenderAddress(getAddress());
         }
         return tx;
     }
 
     public double getNumberofCoins() {
         double numberofCoins = 0.0;
-        BigInteger address = getAddress();
+        String address = CryptoService.hash(getAddress());
         for (UTXO utxo : UTXOPool.getInstance().getList()) {
             if (address.equals(CryptoService.decrypt(utxo.getReceiverAddress(), privateKey, pubKey))) {
                 numberofCoins += utxo.getCoin();
@@ -136,7 +139,7 @@ public class Account implements Serializable {
         return numberofCoins;
     }
 
-    public BigInteger getEncryptedAddress() {
+    public String getEncryptedAddress() {
         return CryptoService.encrypt(getAddress(), pubKey);
     }
 }

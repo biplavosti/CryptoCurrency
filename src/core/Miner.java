@@ -58,7 +58,7 @@ public class Miner implements Serializable {
             return false;
         }
         if (block.confirm()) {
-            BigInteger blockHash = block.getBlockHash();
+            String blockHash = block.getBlockHash();
             for (Transaction tx : block.getLiveTransactions()) {
                 tx.setBlockHash(blockHash);
                 tx.removeUTXO();
@@ -81,7 +81,7 @@ public class Miner implements Serializable {
             return null;
         }
         if (blockChain.isEmpty()) {
-            block = new Block(BigInteger.ZERO, transactions);
+            block = new Block("0", transactions);
         } else {
             block = new Block(blockChain.getLast().getBlockHash(), transactions);
         }

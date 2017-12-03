@@ -5,12 +5,15 @@
  */
 package core;
 
+import core.common.Center;
+import core.common.UTXOPool;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.net.Socket;
 import java.util.LinkedList;
 
 /**
@@ -25,7 +28,6 @@ public final class BlockChain implements Serializable {
 
     private BlockChain() {
         chain = new LinkedList();
-        txList = TransactionPool.getInstance();
     }
 
     public static BlockChain getInstance() {
@@ -34,18 +36,35 @@ public final class BlockChain implements Serializable {
                 FileInputStream fs = new FileInputStream("blockchain.ser");
                 ObjectInputStream os = new ObjectInputStream(fs);
                 BLOCKCHAIN = (BlockChain) os.readObject();
-                txList = TransactionPool.getInstance();
-                BLOCKCHAIN.display();
             } catch (IOException | ClassNotFoundException e) {
-                BLOCKCHAIN = new BlockChain();
+                Center center = Center.getInstance();
+                try {
+                    Object object = center.new Client(new Socket("localhost",
+                            center.peerServerPort)).run("getChain");
+                    if (object == null) {
+                        BLOCKCHAIN = new BlockChain();
+                    } else {
+                        BlockChain bc = (BlockChain) object;
+                        bc.save();
+                        BLOCKCHAIN = bc;
+                    }
+
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    BLOCKCHAIN = new BlockChain();
+                }
             }
+            BLOCKCHAIN.display();
+            System.out.println("BlockChain Started");
         }
+        txList = TransactionPool.getInstance();
         return BLOCKCHAIN;
     }
 
     public boolean add(Block block) {
-        chain.add(block);
         txList.add(block.getLiveTransactions());
+//        block.setTransactions(null);
+        chain.add(block);
         save();
         display();
         return true;
@@ -61,6 +80,7 @@ public final class BlockChain implements Serializable {
         }
         System.out.println("<-Block Chain");
         System.out.println();
+        UTXOPool.getInstance().display();
     }
 
     public boolean isEmpty() {

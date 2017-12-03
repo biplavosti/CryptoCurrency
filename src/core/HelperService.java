@@ -7,7 +7,6 @@ package core;
 
 import core.common.Transaction;
 import core.common.CryptoService;
-import java.math.BigInteger;
 import java.util.List;
 
 /**
@@ -16,18 +15,18 @@ import java.util.List;
  */
 public class HelperService {
 
-    public static BigInteger merkleRoot(BigInteger[] codes) {
+    public static String merkleRoot(String[] codes) {
         if (codes.length < 1) {
-            return BigInteger.valueOf(0);
+            return "0";
         } else if (codes.length == 2) {
             return CryptoService.hash(codes[0] + "" + codes[1]);
         } else if (codes.length == 1) {
             return CryptoService.hash(codes[0] + "" + codes[0]);
         } else {
-            BigInteger hash1 = BigInteger.valueOf(0);
-            BigInteger hash2;
+            String hash1 = "";
+            String hash2;
             int j = 0;
-            BigInteger codes1[] = new BigInteger[codes.length / 2 + 1];
+            String codes1[] = new String[codes.length / 2 + 1];
             boolean pair = false;
             for (int i = 0; i < codes.length; i++) {
                 if (i % 2 == 0) {

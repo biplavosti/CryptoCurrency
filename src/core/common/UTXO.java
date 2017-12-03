@@ -6,7 +6,6 @@
 package core.common;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 
 /**
  *
@@ -14,32 +13,40 @@ import java.math.BigInteger;
  */
 public class UTXO implements Serializable {
 
-    private final BigInteger txHash;
-    private final BigInteger txOutHash;
-    private final BigInteger receiverAddress;
+    private final String txHash;
+    private final String txOutHash;
+    private final String receiverAddress;
     private final double coin;
 
-    public UTXO(BigInteger txHash, BigInteger OutTxHash,
-            BigInteger receiverAddress, double coin) {
+    public UTXO(String txHash, String OutTxHash,
+            String receiverAddress, double coin) {
         this.txHash = txHash;
         this.txOutHash = OutTxHash;
         this.receiverAddress = receiverAddress;
         this.coin = coin;
     }
 
-    public BigInteger getTxHash() {
+    public String getTxHash() {
         return txHash;
     }
 
-    public BigInteger getTxOutHash() {
+    public String getTxOutHash() {
         return txOutHash;
     }
 
-    public BigInteger getReceiverAddress() {
+    public String getReceiverAddress() {
         return receiverAddress;
     }
 
     public double getCoin() {
         return coin;
+    }
+
+    public void display() {
+        System.out.println("[UTXO]  ->");
+        System.out.println("     tx    -> " + txHash);
+        System.out.println("     txout -> " + txOutHash);
+        System.out.println("     coin  -> " + coin);
+        System.out.println("     add   -> " + receiverAddress);
     }
 }

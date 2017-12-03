@@ -5,14 +5,11 @@
  */
 package core.common;
 
-import core.Block;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -20,14 +17,18 @@ import java.util.logging.Logger;
  */
 public class CryptoService {
 
-    public static BigInteger hash(String key) {
+    public static String hash(String key) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            return new BigInteger(digest.digest(key.getBytes(StandardCharsets.UTF_8)));
+            return new BigInteger(digest.digest(key.getBytes(StandardCharsets.UTF_8))).toString();
         } catch (NoSuchAlgorithmException ex) {
-            Logger.getLogger(Block.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
         }
-        return BigInteger.valueOf(0);
+        return "0";
+    }
+
+    public static String hashTwice(String key) {
+        return hash(hash(key));
     }
 
     public static BigInteger mod(BigInteger base, BigInteger exponent, BigInteger dividend) {
@@ -55,31 +56,49 @@ public class CryptoService {
                 ? base.multiply(rem).remainder(div) : rem));
     }
 
-    private static BigInteger encrypt(BigInteger msg, BigInteger key, BigInteger product) {
-        return mod(msg, key, product);
+    private static String encrypt(BigInteger msg, BigInteger key, BigInteger product) {
+        return mod(msg, key, product).toString();
     }
 
-    public static BigInteger encrypt(BigInteger msg, PublicKey pubKey) {
-        return encrypt(msg, pubKey.getEncryptionKey(), pubKey.getPrimeProduct());
+    public static String encrypt(String msg, PublicKey pubKey) {
+        return encrypt(new BigInteger(msg), pubKey.getEncryptionKey(), pubKey.getPrimeProduct());
     }
 
-    public static BigInteger encrypt(BigInteger msg, PrivateKey privateKey, PublicKey pubKey) {
-        return encrypt(msg, privateKey.getDecryptionKey(), pubKey.getPrimeProduct());
+    public static String encrypt(String msg, PrivateKey privateKey, PublicKey pubKey) {
+        return encrypt(new BigInteger(msg), privateKey.getDecryptionKey(), pubKey.getPrimeProduct());
     }
 
-    private static BigInteger decrypt(BigInteger msg, BigInteger key, BigInteger product) {
-        return mod(msg, key, product);
+    private static String decrypt(BigInteger msg, BigInteger key, BigInteger product) {
+        return mod(msg, key, product).toString();
     }
 
-    public static BigInteger decrypt(BigInteger msg, PrivateKey privateKey, PublicKey pubKey) {
-        return decrypt(msg, privateKey.getDecryptionKey(), pubKey.getPrimeProduct());
+    public static String decrypt(String msg, PrivateKey privateKey, PublicKey pubKey) {
+        return decrypt(new BigInteger(msg), privateKey.getDecryptionKey(), pubKey.getPrimeProduct());
     }
 
-    public static BigInteger decrypt(BigInteger msg, PublicKey pubKey) {
-        return decrypt(msg, pubKey.getEncryptionKey(), pubKey.getPrimeProduct());
+    public static String decrypt(String msg, PublicKey pubKey) {
+        return decrypt(new BigInteger(msg), pubKey.getEncryptionKey(), pubKey.getPrimeProduct());
     }
 
     public static BigInteger generatePrime(int bit) {
         return BigInteger.probablePrime(bit, new Random());
+    }
+
+    public static String generateAddressPubKey(PublicKey pub) {
+        int enc = pub.getEncryptionKey().intValue();
+        int counter = 0;
+        while (enc > 0) {
+            enc = enc / 10;
+            counter++;
+        }
+//        generatePubKey(counter + "" + pub.getEncryptionKey() + "" + pub.getPrimeProduct()).display();
+        return (counter + "" + pub.getEncryptionKey() + "" + pub.getPrimeProduct());
+    }
+
+    public static PublicKey generatePubKey(String address) {
+        int enc = Integer.parseInt(address.charAt(0) + "");
+        BigInteger eKey = new BigInteger(address.substring(1, enc + 1));
+        BigInteger product = new BigInteger(address.substring(enc + 1));
+        return new PublicKey(eKey, product);
     }
 }
