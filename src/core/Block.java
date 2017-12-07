@@ -84,6 +84,18 @@ public class Block implements Serializable {
             tx.display();
         }
     }
+    
+    public void liveDisplay(){
+        System.out.println("Time Stamp    -> " + timeStamp);
+        System.out.println("Previous Hash -> " + prevHash);
+        System.out.println("Current Hash  -> " + this.getBlockHash());
+        System.out.println("Merkle Root   -> " + merkle_root);
+        System.out.println("Nonce         -> " + nonce);
+        System.out.println("Transactions  -> ");
+        for (Transaction tx : transactions) {
+            tx.display();
+        }
+    }
 
     public boolean confirm() {
         if (!BlockChain.getInstance().isEmpty()) {

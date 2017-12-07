@@ -43,6 +43,7 @@ public class Center implements Serializable {
     public transient LinkedList<String> minedBlocksHash = new LinkedList();
     public transient volatile static Block CURRENTBLOCK;
     public transient volatile static boolean VALIDPEERBLOCK = false;
+    public transient volatile static Block PEERBLOCK;
 
     private Center() {
         USERS = new ArrayList();
@@ -136,7 +137,6 @@ public class Center implements Serializable {
         String confirmation = "CONFIRMED";
         String blockHash = block.getBlockHash();
         if (isMyBlock && VALIDPEERBLOCK) {
-            System.out.println("wasted one block just before broadcast");
             return "UNCONFIRMED";
         }
         synchronized (MINER) {
@@ -146,6 +146,7 @@ public class Center implements Serializable {
             }
             if (!isMyBlock) {
                 VALIDPEERBLOCK = true;
+                PEERBLOCK = block;
             }
             if (!broadCastedBlockMemPool.contains(blockHash)) {
                 broadCastedBlockMemPool.add(blockHash);
@@ -195,7 +196,26 @@ public class Center implements Serializable {
                     BlockChain.getInstance().add(block);
                     BlockChain.getInstance().save();
                 }
+
+                try {
+                    List<Transaction> tempList = new LinkedList();
+                    for (Transaction trans : PEERBLOCK.getLiveTransactions()) {
+                        for (Transaction tx : MINER.newNoBlockTX) {
+                            if (trans.hash().equals(tx.hash())) {
+                                tempList.add(tx);
+                            }
+                        }
+                    }
+                    MINER.newNoBlockTX.removeAll(tempList);
+                    synchronized (this) {
+                        for (Transaction tx : MINER.newNoBlockTX) {
+                            addNewTX(tx);
+                        }
+                    }
+                } catch (NullPointerException ne) {
+                }
                 VALIDPEERBLOCK = false;
+                PEERBLOCK = null;
             }
             if (isMyBlock) {
                 CURRENTBLOCK = null;
@@ -350,13 +370,8 @@ public class Center implements Serializable {
                     } else if (obj instanceof Block) {
                         System.out.println("Block Received");
                         Block newIncomingBlock = (Block) obj;
-//                        System.out.println("----incoming BLOCK----start------");
-                        newIncomingBlock.display();
-//                        System.out.println("----incoming BLOCK----end------");
+                        newIncomingBlock.liveDisplay();
                         try {
-//                            System.out.println("----CURRENT BLOCK----start------");
-//                            CURRENTBLOCK.display();
-//                            System.out.println("----CURRENT BLOCK----end------");
                             if (CURRENTBLOCK.getNonce().compareTo(newIncomingBlock.getNonce()) >= 0) {
                                 outStream.writeObject("UNCONFIRMED");
                             }
@@ -390,11 +405,6 @@ public class Center implements Serializable {
                     System.out.println("server started at port: " + port);
                     while (OPEN) {
                         Socket sock = server.accept();
-//                        if (!OPEN) {
-//                            sock.close();
-//                            server.close();
-//                            break;
-//                        }
                         if (OPEN) {
                             new Thread(new ClientHandler(sock)).start();
                         }

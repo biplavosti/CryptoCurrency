@@ -20,6 +20,7 @@ public class Miner implements Serializable, Runnable {
 
     private final Account account;
     private transient Thread minerThread;
+    public transient List<Transaction> newNoBlockTX;
 
     public Miner(Account account) {
         this.account = account;
@@ -72,8 +73,7 @@ public class Miner implements Serializable, Runnable {
     }
 
     @Override
-    public void run() {
-        List<Transaction> newNoBlockTX;
+    public void run() {        
         while (Center.OPEN) {
             if (!Center.VALIDPEERBLOCK) {
                 Center.CURRENTBLOCK = null;
@@ -90,31 +90,20 @@ public class Miner implements Serializable, Runnable {
                     return;
                 }
                 if (Center.VALIDPEERBLOCK) {
-                    System.out.println("wasted one block before mining");
                     continue;
                 }
                 Block newFoundBlock = receiveTransaction(newNoBlockTX);
                 Center.CURRENTBLOCK = newFoundBlock;
                 System.out.println("------New BLOCK MINED-----START---");
-                newFoundBlock.display();
+                newFoundBlock.liveDisplay();
                 System.out.println("------New BLOCK MINED-----END---");
                 if (!Center.OPEN) {
                     return;
                 }
                 if (Center.VALIDPEERBLOCK) {
-                    System.out.println("wasted one block before broadcast");
                     continue;
                 }
                 Center.getInstance().broadcastBlock(newFoundBlock, true);
-//            new Thread() {
-//                @Override
-//                public void run() {
-//                    Center.getInstance().broadcastBlock(newFoundBlock);
-//                }
-//            }.start();
-
-//            newFoundBlock.display();
-                newNoBlockTX.clear();
             }
         }
     }
