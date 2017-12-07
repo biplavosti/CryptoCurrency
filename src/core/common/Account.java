@@ -57,7 +57,6 @@ public class Account implements Serializable {
         }
 
         pubKey = new PublicKey(e, p.multiply(q));
-        pubKey.display();
         privateKey = new PrivateKey(d);
     }
 

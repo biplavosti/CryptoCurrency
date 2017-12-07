@@ -86,6 +86,11 @@ public class Block implements Serializable {
     }
 
     public boolean confirm() {
+        if (!BlockChain.getInstance().isEmpty()) {
+            if (!BlockChain.getInstance().getLast().getBlockHash().equals(prevHash)) {
+                return false;
+            }
+        }
         int noOfCoinbaseTX = 0;
         for (Transaction tx : getLiveTransactions()) {
             if (!tx.verify()) {
@@ -102,6 +107,6 @@ public class Block implements Serializable {
     }
 
     public boolean verify() {
-        return new BigInteger(getBlockHash()).remainder(BigInteger.valueOf(100)).equals(BigInteger.valueOf(0));
+        return new BigInteger(getBlockHash()).remainder(BigInteger.valueOf(1000000)).equals(BigInteger.valueOf(0));
     }
 }

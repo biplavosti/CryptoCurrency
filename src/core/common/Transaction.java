@@ -5,6 +5,7 @@
  */
 package core.common;
 
+import core.TransactionPool;
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -91,6 +92,10 @@ public class Transaction implements Serializable {
         Output out = new Output(coin, address);
         outputs.add(out);
     }
+    
+    public LinkedList<Output> getOutput(){
+        return outputs;
+    }
 
     public void addUTXO() {
         outputs.forEach((out) -> {
@@ -149,6 +154,12 @@ public class Transaction implements Serializable {
         PublicKey senderPubKey = CryptoService.generatePubKey(senderAddress);
         if (!hash().equals(CryptoService.decrypt(encryptedHash, senderPubKey))) {
             return false;
+        }
+
+        for (Transaction trans : TransactionPool.getInstance().getList()) {
+            if (hash().equals(trans.hash())) {
+                return false;
+            }
         }
 
         double inputSum = 0.0;
@@ -212,7 +223,7 @@ public class Transaction implements Serializable {
 
     }
 
-    private class Output implements Serializable {
+    public class Output implements Serializable {
 
         private Double coin;
         private String receiverAddress;
@@ -222,7 +233,7 @@ public class Transaction implements Serializable {
             this.receiverAddress = receiverAddress;
         }
 
-        private double getCoin() {
+        public double getCoin() {
             return coin;
         }
 
@@ -230,7 +241,7 @@ public class Transaction implements Serializable {
             this.coin = coin;
         }
 
-        private String getReceiverAddress() {
+        public String getReceiverAddress() {
             return receiverAddress;
         }
 

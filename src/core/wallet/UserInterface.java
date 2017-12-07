@@ -6,12 +6,9 @@
 package core.wallet;
 
 import core.BlockChain;
-import core.TransactionPool;
 import core.common.Account;
 import core.common.Center;
-import core.common.UTXOPool;
 import java.io.IOException;
-import java.net.Socket;
 import java.util.List;
 import java.util.Scanner;
 
@@ -35,7 +32,7 @@ public class UserInterface {
             if (!ACCOUNTS.isEmpty()) {
                 System.out.println("ZZ  2 : ENTER INTO EXISTING ACCOUNT");
             }
-            System.out.println("ZZ  3 : MINE COINBASE TX");
+            System.out.println("ZZ  3 : SHOW BLOCKCHAIN");
             System.out.println("ZZ");
             System.out.println("Please enter your choice : ");
             option = INPUT.nextInt();
@@ -58,7 +55,7 @@ public class UserInterface {
                     center.save();
                      {
                         try {
-                            center.new Client(new Socket("localhost", center.thisServerPort)).run(this);
+                            center.hitServer("shutdown", false);
                         } catch (IOException ex) {
 
                         }
@@ -74,7 +71,7 @@ public class UserInterface {
                     center.createAccount(name);
                     break;
                 case 3:
-                    center.mineFirstCoin();
+                    BlockChain.getInstance().display();
                     break;
             }
         }
@@ -125,9 +122,7 @@ public class UserInterface {
     }
 
     public static void main(String[] args) {
-        TransactionPool.getInstance();
-        BlockChain.getInstance();
-        UTXOPool.getInstance();
+        Center.setup();        
         new UserInterface().door();
     }
 }

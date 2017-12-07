@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -32,23 +31,12 @@ public class TransactionPool implements Serializable {
 
     public static TransactionPool getInstance() {
         if (TXLIST == null) {
-            try {
-                FileInputStream fs = new FileInputStream("transactions.ser");
-                ObjectInputStream os = new ObjectInputStream(fs);
-                TXLIST = (TransactionPool) os.readObject();
+            try {                
+                TXLIST = loadPoolFromFile();
             } catch (IOException | ClassNotFoundException e) {
-                Center center = Center.getInstance();
                 try {
-                    Object object = center.new Client(new Socket("localhost",
-                            center.peerServerPort)).run("getTXPool");
-                    if (object == null) {
-                        TXLIST = new TransactionPool();
-                    } else {
-                        TXLIST = (TransactionPool) object;
-                        TXLIST.save();
-                    }
+                    getPoolFromPeer();
                 } catch (IOException ex) {
-                    ex.printStackTrace();
                     TXLIST = new TransactionPool();
                 }
             }
@@ -56,6 +44,26 @@ public class TransactionPool implements Serializable {
             System.out.println("TransactionPool Started");
         }
         return TXLIST;
+    }
+
+    public static TransactionPool getPoolFromPeer() throws IOException{
+        Center center = Center.getInstance();
+
+        Object object = center.hitServer("getTXPool", true);
+        if (object == null) {
+            TXLIST = new TransactionPool();
+        } else {
+            TXLIST = (TransactionPool) object;
+            TXLIST.save();
+        }
+
+        return TXLIST;
+    }
+    
+    public static TransactionPool loadPoolFromFile()  throws IOException, ClassNotFoundException{
+        FileInputStream fs = new FileInputStream("transactions.ser");
+        ObjectInputStream os = new ObjectInputStream(fs);
+        return (TransactionPool) os.readObject();
     }
 
     public void save() {
@@ -71,7 +79,7 @@ public class TransactionPool implements Serializable {
 
     public boolean add(final Transaction tx) {
         if (txList.add(tx)) {
-            save();
+//            save();
             return true;
         }
         return false;
@@ -81,7 +89,7 @@ public class TransactionPool implements Serializable {
         for (Transaction tx : transactions) {
             txList.add(tx);
         }
-        save();
+//            save();
         return true;
     }
 

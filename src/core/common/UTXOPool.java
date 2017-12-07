@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.net.Socket;
 import java.util.LinkedList;
 
 /**
@@ -29,23 +28,12 @@ public class UTXOPool implements Serializable {
 
     public static UTXOPool getInstance() {
         if (UNSPENTTXOUT == null) {
-            try {
-                FileInputStream fs = new FileInputStream("utxo.ser");
-                ObjectInputStream os = new ObjectInputStream(fs);
-                UNSPENTTXOUT = (UTXOPool) os.readObject();
+            try {                
+                UNSPENTTXOUT = loadPoolFromFile();
             } catch (IOException | ClassNotFoundException e) {
-                Center center = Center.getInstance();
                 try {
-                    Object object = center.new Client(new Socket("localhost",
-                            center.peerServerPort)).run("getUTXOPool");
-                    if (object == null) {
-                        UNSPENTTXOUT = new UTXOPool();
-                    } else {
-                        UNSPENTTXOUT = (UTXOPool) object;
-                        UNSPENTTXOUT.save();
-                    }
+                    getPoolFromPeer();
                 } catch (IOException ex) {
-                    ex.printStackTrace();
                     UNSPENTTXOUT = new UTXOPool();
                 }
             }
@@ -55,14 +43,34 @@ public class UTXOPool implements Serializable {
         return UNSPENTTXOUT;
     }
 
+    public static UTXOPool getPoolFromPeer() throws IOException{
+        Center center = Center.getInstance();
+
+        Object object = center.hitServer("getUTXOPool",true);
+        if (object == null) {
+            UNSPENTTXOUT = new UTXOPool();
+        } else {
+            UNSPENTTXOUT = (UTXOPool) object;
+            UNSPENTTXOUT.save();
+        }
+
+        return UNSPENTTXOUT;
+    }
+    
+    public static UTXOPool loadPoolFromFile()  throws IOException, ClassNotFoundException{
+        FileInputStream fs = new FileInputStream("utxo.ser");
+        ObjectInputStream os = new ObjectInputStream(fs);
+        return (UTXOPool) os.readObject();
+    }
+
     public void addUTXO(UTXO utxo) {
         txOutList.add(utxo);
-        save();
+//        save();
     }
 
     public void removeUTXO(UTXO utxo) {
         txOutList.remove(utxo);
-        save();
+//        save();
     }
 
     public LinkedList<UTXO> getList() {
@@ -77,6 +85,7 @@ public class UTXOPool implements Serializable {
             os.flush();
             os.close();
         } catch (IOException ex) {
+            ex.printStackTrace();
             System.out.println("ERROR : Could not save UTXO");
         }
     }
