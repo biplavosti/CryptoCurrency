@@ -44,7 +44,7 @@ The Blockchain is saved in file 'blochchain.ser'.
 
 More on Center/Server:
 As center get started it also starts its server and miner. Coinbase mining starting immediately as miner starts.
-The default server port number is 29636. It is hardcoded. If it is not available center searches for other available ports.
+The default server port number is 29236. It is hardcoded. If it is not available center searches for other available ports.
 
 More on Mining: 
 
