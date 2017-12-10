@@ -55,7 +55,7 @@ More on Mining:
 3) Miner here if finds a block broadcasts it to other miners and wait for its immediate peers* confirmation. If number of confirmed peers is greater than unconfirmed ones it add the block into its blockchain. And if opposite is the case it tries to rectify its blockchain.
 The rectification process is :
 i) it requests other peers for their total difficulty ie. sum of all the nonce in their blockchain.
-ii) if this total nonce is greater than its own total difficulty it requests complete blockchain from its peer (this can be optimized) and if not it does nothing and continue with its own blockchain.
+ii) if this total nonce is greater than its own total difficulty it requests complete blockchain from its peer (this can be optimized) and if not no correction needed so it adds its block and continue with its own blockchain.
 iii) and this process repeats.
 
 Note: Immediate Peers mean those peers a center is directly connected to.
