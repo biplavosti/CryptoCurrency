@@ -6,6 +6,8 @@
 package core;
 
 import core.common.Center;
+import core.common.Peer;
+import core.common.PeerPool;
 import core.common.Transaction;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -22,8 +24,8 @@ import java.util.List;
  */
 public class TransactionPool implements Serializable {
 
-    private final LinkedList<Transaction> txList;
-    private static TransactionPool TXLIST;
+    private volatile LinkedList<Transaction> txList;
+    private static volatile TransactionPool TXLIST;
 
     private TransactionPool() {
         txList = new LinkedList();
@@ -31,12 +33,13 @@ public class TransactionPool implements Serializable {
 
     public static TransactionPool getInstance() {
         if (TXLIST == null) {
-            try {                
+            System.out.println("TransactionPool is null");
+            try {
                 TXLIST = loadPoolFromFile();
             } catch (IOException | ClassNotFoundException e) {
                 try {
-                    getPoolFromPeer();
-                } catch (IOException ex) {
+                    getPoolFromPeer(PeerPool.getInstance().getPeerList().getFirst());
+                } catch (Exception ex) {
                     TXLIST = new TransactionPool();
                 }
             }
@@ -46,10 +49,10 @@ public class TransactionPool implements Serializable {
         return TXLIST;
     }
 
-    public static TransactionPool getPoolFromPeer() throws IOException{
+    public static TransactionPool getPoolFromPeer(Peer peer) throws IOException, NullPointerException {
         Center center = Center.getInstance();
 
-        Object object = center.hitServer("getTXPool", true);
+        Object object = center.hitPeerWait("getTXPool", peer);
         if (object == null) {
             TXLIST = new TransactionPool();
         } else {
@@ -59,8 +62,8 @@ public class TransactionPool implements Serializable {
 
         return TXLIST;
     }
-    
-    public static TransactionPool loadPoolFromFile()  throws IOException, ClassNotFoundException{
+
+    public static TransactionPool loadPoolFromFile() throws IOException, ClassNotFoundException {
         FileInputStream fs = new FileInputStream("transactions.ser");
         ObjectInputStream os = new ObjectInputStream(fs);
         return (TransactionPool) os.readObject();

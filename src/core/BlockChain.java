@@ -6,6 +6,8 @@
 package core;
 
 import core.common.Center;
+import core.common.Peer;
+import core.common.PeerPool;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -31,12 +33,16 @@ public final class BlockChain implements Serializable {
 
     public static BlockChain getInstance() {
         if (BLOCKCHAIN == null) {
+            System.out.println("blockchain is null");
             try {
                 BLOCKCHAIN = loadChainFromFile();
             } catch (IOException | ClassNotFoundException e) {
                 try {
-                    BLOCKCHAIN = getChainFromPeer();
-                } catch (IOException ex) {
+//                    PeerPool.getInstance().display();
+                    BLOCKCHAIN = getChainFromPeer(PeerPool.getInstance().getPeerList().getFirst());
+                } catch (Exception ex) {
+                    System.out.println("blockchain peer load failed");
+                    ex.printStackTrace();
                     BLOCKCHAIN = new BlockChain();
                 }
             }
@@ -47,18 +53,13 @@ public final class BlockChain implements Serializable {
         return BLOCKCHAIN;
     }
 
-    public static BlockChain getChainFromPeer() throws IOException {
-        Center center = Center.getInstance();
-
-        Object object = center.hitServer("getChain", true);
-        if (object == null) {
-            BLOCKCHAIN = new BlockChain();
-        } else {
-            BlockChain bc = (BlockChain) object;
-            bc.save();
-            BLOCKCHAIN = bc;
-        }
-        txList = TransactionPool.getPoolFromPeer();
+    public static BlockChain getChainFromPeer(Peer peer) throws IOException, NullPointerException {
+        Center center = Center.getInstance(); 
+        System.out.println("block fetched from peer");
+        BLOCKCHAIN = (BlockChain) center.hitPeerWait("getChain", peer);        
+        BLOCKCHAIN.display();
+        System.out.println("block chain fetch completed");
+        txList = TransactionPool.getPoolFromPeer(peer);
         return BLOCKCHAIN;
     }
 

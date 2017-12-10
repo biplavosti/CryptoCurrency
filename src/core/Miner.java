@@ -73,19 +73,16 @@ public class Miner implements Serializable, Runnable {
     }
 
     @Override
-    public void run() {        
+    public void run() {
+        newNoBlockTX = Center.getInstance().submitNewTXList();
         while (Center.OPEN) {
             if (!Center.VALIDPEERBLOCK) {
-                Center.CURRENTBLOCK = null;
-                System.out.println("-------TX in this block---Start------");
-                newNoBlockTX = Center.getInstance().submitNewTXList();
+                System.out.println("miner transactions ------ starts-------");
                 for (Transaction tx : newNoBlockTX) {
                     tx.display();
-                    if (!tx.verify()) {
-                        newNoBlockTX.remove(tx);
-                    }
                 }
-                System.out.println("-------TX in this block---End-------");
+                System.out.println("miner transactions ------ ends-------");
+                Center.CURRENTBLOCK = null;
                 if (!Center.OPEN) {
                     return;
                 }
@@ -93,7 +90,14 @@ public class Miner implements Serializable, Runnable {
                     continue;
                 }
                 Block newFoundBlock = receiveTransaction(newNoBlockTX);
-                Center.CURRENTBLOCK = newFoundBlock;
+                if (!newFoundBlock.verify()) {
+                    newNoBlockTX.addAll(Center.getInstance().submitNewTXList());
+                    continue;
+                }
+                if (Center.VALIDPEERBLOCK) {
+                    continue;
+                }
+//                Center.CURRENTBLOCK = newFoundBlock;
                 System.out.println("------New BLOCK MINED-----START---");
                 newFoundBlock.liveDisplay();
                 System.out.println("------New BLOCK MINED-----END---");
@@ -103,7 +107,9 @@ public class Miner implements Serializable, Runnable {
                 if (Center.VALIDPEERBLOCK) {
                     continue;
                 }
+
                 Center.getInstance().broadcastBlock(newFoundBlock, true);
+                newNoBlockTX.addAll(Center.getInstance().submitNewTXList());
             }
         }
     }

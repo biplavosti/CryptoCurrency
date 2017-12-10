@@ -119,7 +119,8 @@ public class Transaction implements Serializable {
 
     public void display() {
         System.out.println("  [T]   -> " + entry);
-        System.out.println("     Inputs  ->");
+        System.out.println("     Timestamp  ->" + timeStamp);
+        System.out.println("     Inputs     ->");
         inputs.forEach((input) -> {
             System.out.println("        [TXI]  -> " + input.getPrevTxHash());
         });

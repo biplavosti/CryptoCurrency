@@ -19,8 +19,8 @@ import java.util.LinkedList;
  */
 public class UTXOPool implements Serializable {
 
-    private final LinkedList<UTXO> txOutList;
-    private static UTXOPool UNSPENTTXOUT;
+    private volatile LinkedList<UTXO> txOutList;
+    private static volatile UTXOPool UNSPENTTXOUT;
 
     private UTXOPool() {
         txOutList = new LinkedList();
@@ -28,12 +28,13 @@ public class UTXOPool implements Serializable {
 
     public static UTXOPool getInstance() {
         if (UNSPENTTXOUT == null) {
-            try {                
+            System.out.println("utxo pool is null");
+            try {
                 UNSPENTTXOUT = loadPoolFromFile();
             } catch (IOException | ClassNotFoundException e) {
                 try {
-                    getPoolFromPeer();
-                } catch (IOException ex) {
+                    getPoolFromPeer(PeerPool.getInstance().getPeerList().getFirst());
+                } catch (Exception ex) {
                     UNSPENTTXOUT = new UTXOPool();
                 }
             }
@@ -43,10 +44,10 @@ public class UTXOPool implements Serializable {
         return UNSPENTTXOUT;
     }
 
-    public static UTXOPool getPoolFromPeer() throws IOException{
+    public static UTXOPool getPoolFromPeer(Peer peer) throws IOException, NullPointerException {
         Center center = Center.getInstance();
 
-        Object object = center.hitServer("getUTXOPool",true);
+        Object object = center.hitPeerWait("getUTXOPool", peer);
         if (object == null) {
             UNSPENTTXOUT = new UTXOPool();
         } else {
@@ -56,8 +57,8 @@ public class UTXOPool implements Serializable {
 
         return UNSPENTTXOUT;
     }
-    
-    public static UTXOPool loadPoolFromFile()  throws IOException, ClassNotFoundException{
+
+    public static UTXOPool loadPoolFromFile() throws IOException, ClassNotFoundException {
         FileInputStream fs = new FileInputStream("utxo.ser");
         ObjectInputStream os = new ObjectInputStream(fs);
         return (UTXOPool) os.readObject();

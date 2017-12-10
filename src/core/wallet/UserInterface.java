@@ -6,8 +6,12 @@
 package core.wallet;
 
 import core.BlockChain;
+import core.TransactionPool;
 import core.common.Account;
 import core.common.Center;
+import core.common.Peer;
+import core.common.PeerPool;
+import core.common.UTXOPool;
 import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
@@ -33,6 +37,10 @@ public class UserInterface {
                 System.out.println("ZZ  2 : ENTER INTO EXISTING ACCOUNT");
             }
             System.out.println("ZZ  3 : SHOW BLOCKCHAIN");
+            System.out.println("ZZ  4 : SHOW TRANSACTION POOL");
+            System.out.println("ZZ  5 : SHOW UTXO POOL");
+            System.out.println("ZZ  6 : GET NEW PEER LIST");
+            System.out.println("ZZ  7 : SHOW PEERS");
             System.out.println("ZZ");
             System.out.println("Please enter your choice : ");
             option = INPUT.nextInt();
@@ -53,12 +61,9 @@ public class UserInterface {
                     completed = true;
                     Center.OPEN = false;
                     center.save();
-                     {
-                        try {
-                            center.hitServer("shutdown", false);
-                        } catch (IOException ex) {
-
-                        }
+                    try {
+                        center.hitPeerNoWait("shutdown", center.SELF);
+                    } catch (IOException | NullPointerException ex) {
                     }
                     break;
                 case 1:
@@ -72,6 +77,22 @@ public class UserInterface {
                     break;
                 case 3:
                     BlockChain.getInstance().display();
+                    break;
+                case 4:
+                    TransactionPool.getInstance().display();
+                    break;
+                case 5:
+                    UTXOPool.getInstance().display();
+                    break;
+                case 6: {
+                    try {
+                        PeerPool.getInstance().addAll((List<Peer>) Center.getInstance().hitPeerWait("getPeerList", PeerPool.getInstance().getPeerList().getFirst()));
+                    } catch (IOException ex) {
+                    }
+                    break;
+                }
+                case 7:
+                    PeerPool.getInstance().display();
                     break;
             }
         }
@@ -122,7 +143,7 @@ public class UserInterface {
     }
 
     public static void main(String[] args) {
-        Center.setup();        
+        Center.setup();
         new UserInterface().door();
     }
 }

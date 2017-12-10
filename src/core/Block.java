@@ -84,8 +84,8 @@ public class Block implements Serializable {
             tx.display();
         }
     }
-    
-    public void liveDisplay(){
+
+    public void liveDisplay() {
         System.out.println("Time Stamp    -> " + timeStamp);
         System.out.println("Previous Hash -> " + prevHash);
         System.out.println("Current Hash  -> " + this.getBlockHash());
@@ -98,6 +98,9 @@ public class Block implements Serializable {
     }
 
     public boolean confirm() {
+        if (!verify()) {
+            return false;
+        }
         if (!BlockChain.getInstance().isEmpty()) {
             if (!BlockChain.getInstance().getLast().getBlockHash().equals(prevHash)) {
                 return false;
@@ -115,7 +118,7 @@ public class Block implements Serializable {
                 }
             }
         }
-        return verify();
+        return true;
     }
 
     public boolean verify() {
