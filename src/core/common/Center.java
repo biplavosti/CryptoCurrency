@@ -17,14 +17,16 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -42,9 +44,7 @@ public class Center implements Serializable {
     private transient LinkedList<String> broadCastedBlockMemPool;
     public transient LinkedList<Transaction> newNoBlockTX = new LinkedList();
     public transient LinkedList<String> minedBlocksHash = new LinkedList();
-    public transient volatile static Block CURRENTBLOCK;
     public transient volatile static boolean VALIDPEERBLOCK = false;
-    public transient volatile static Block PEERBLOCK;
     public Peer SELF;
 
     private Center() {
@@ -80,13 +80,23 @@ public class Center implements Serializable {
                     try {
                         server = new ServerSocket(0);
                     } catch (IOException ex1) {
-                        System.out.println("ERROR : Server start failed.");
+                        System.out.println("ERROR : Server start failed. Please try again.");
                     }
                 }
             } finally {
                 if (server != null) {
-                    CENTER.SELF = new Peer("localhost", server.getLocalPort());
-                    new Thread(CENTER.new Server(server)).start();
+                    try {
+                        CENTER.SELF = new Peer(InetAddress.getLocalHost().getHostAddress(), server.getLocalPort());
+                        new Thread(CENTER.new Server(server)).start();
+                    } catch (UnknownHostException ex) {
+                        try {
+                            server.close();
+                            System.out.println("ERROR : Server start failed. Please try again.");
+                        } catch (IOException ex1) {
+                        }
+
+                    }
+
                 }
             }
         }
@@ -119,7 +129,7 @@ public class Center implements Serializable {
 
     public List<Transaction> submitNewTXList() {
         List<Transaction> list;
-        synchronized (this) {
+        synchronized (MINER) {
             list = new LinkedList(newNoBlockTX);
             newNoBlockTX.clear();
         }
@@ -150,7 +160,7 @@ public class Center implements Serializable {
             } catch (IOException | NullPointerException ex) {
                 ex.printStackTrace();
             }
-            synchronized (this) {
+            synchronized (MINER) {
                 broadCastedTXMemPool.add(hash);
                 newNoBlockTX.add(transaction);
             }
@@ -160,28 +170,24 @@ public class Center implements Serializable {
     public synchronized String broadcastBlock(Block block, boolean isMyBlock) {
         String confirmation = "CONFIRMED";
         String blockHash = block.getBlockHash();
-        if (isMyBlock && VALIDPEERBLOCK) {
-            return "UNCONFIRMED";
-        }
-        BigInteger myCollectiveNonce = BlockChain.getInstance().getCollectiveNonce();
+
         if (!block.confirm()) {
-            System.out.println("ERROR : " + (isMyBlock ? "MY " : "PEER ") + "Block is not verified : " + blockHash);
+            System.out.println("ERROR : " + "Block not verified : " + blockHash);
             return "UNCONFIRMED";
         }
-        if (!isMyBlock) {
-            VALIDPEERBLOCK = true;
-            PEERBLOCK = block;
-        }
+
         if (!broadCastedBlockMemPool.contains(blockHash)) {
+            VALIDPEERBLOCK = true;
             broadCastedBlockMemPool.add(blockHash);
             if (!isMyBlock) {
+                System.out.println("Block Received");
+                block.display();
                 try {
                     hitMultiplePeerNoWait(block);
                 } catch (IOException | NullPointerException ex) {
                 }
                 confirmation = "CONFIRMED";
             } else {
-                CURRENTBLOCK = block;
                 Object[] bucket = null;
                 try {
                     bucket = hitMultiplePeerWait(block);
@@ -208,50 +214,6 @@ public class Center implements Serializable {
                         confirmation = "UNCONFIRMED";
                     }
                 }
-                if ("UNCONFIRMED".equals(confirmation)) {
-                    try {
-                        bucket = hitMultiplePeerWait("getCollectiveNonce");
-                    } catch (IOException | NullPointerException | InterruptedException ex) {
-                    }
-                    if (bucket != null) {
-                        HashMap<String, Integer> map = new HashMap();
-                        for (Object object : bucket) {
-                            String key;
-                            if (object != null) {
-                                key = (String) object;
-                                if (map.containsKey(key)) {
-                                    map.put(key, map.get(key) + 1);
-                                } else {
-                                    map.put(key, 1);
-                                }
-                            }
-                        }
-                        int max = 0;
-                        String nonce = "";
-                        for (String key : map.keySet()) {
-                            int value = map.get(key);
-                            if (value > max) {
-                                max = value;
-                                nonce = key;
-                            }
-                        }
-                        BigInteger peerCollectiveNonce = new BigInteger(nonce);
-                        if (myCollectiveNonce.compareTo(peerCollectiveNonce) < 0) {
-                            try {
-                                Peer peer = null;
-                                for (int i = 0; i < bucket.length; i++) {
-                                    if (bucket[i].equals(nonce)) {
-                                        peer = PeerPool.getInstance().getPeerList().get(i);
-                                        break;
-                                    }
-                                }
-                                reloadFromPeer(peer);
-                            } catch (IOException ex) {
-                                ex.printStackTrace();
-                            }
-                        }
-                    }
-                }
             }
 
             if ("CONFIRMED".equals(confirmation)) {
@@ -264,32 +226,28 @@ public class Center implements Serializable {
                     UTXOPool.getInstance().save();
                     TransactionPool.getInstance().save();
                 }
-            }
-            synchronized (BlockChain.getInstance()) {
-                BlockChain.getInstance().add(block);
-                BlockChain.getInstance().save();
-            }
-            broadCastedBlockMemPool.remove(blockHash);
-            CENTER.save();
+                synchronized (BlockChain.getInstance()) {
+                    BlockChain.getInstance().add(block);
+                    BlockChain.getInstance().save();
+                }
+                broadCastedBlockMemPool.remove(blockHash);
+                CENTER.save();
 
-            try {
-                List<Transaction> tempList = new LinkedList();
-                for (Transaction trans : PEERBLOCK.getLiveTransactions()) {
-                    for (Transaction tx : MINER.newNoBlockTX) {
-                        if (trans.hash().equals(tx.hash())) {
-                            tempList.add(tx);
+                if (isMyBlock) {
+                    MINER.newNoBlockTX.clear();
+                } else {
+                    List<Transaction> tempList = new LinkedList();
+                    for (Transaction trans : block.getLiveTransactions()) {
+                        for (Transaction tx : MINER.newNoBlockTX) {
+                            if (trans.hash().equals(tx.hash()) || tx.isCoinBase()) {
+                                tempList.add(tx);
+                            }
                         }
                     }
+                    MINER.newNoBlockTX.removeAll(tempList);
                 }
-                MINER.newNoBlockTX.removeAll(tempList);
-            } catch (NullPointerException ne) {
-                MINER.newNoBlockTX.clear();
+                VALIDPEERBLOCK = false;
             }
-            VALIDPEERBLOCK = false;
-            PEERBLOCK = null;
-        }
-        if (isMyBlock) {
-            CURRENTBLOCK = null;
         }
         return confirmation;
     }
@@ -381,7 +339,7 @@ public class Center implements Serializable {
         public Client(String host, int port) throws IOException {
             client = new Socket(InetAddress.getByName(host), port);
 //            client = new Socket(host, port);
-            client.setSoTimeout(20000);
+            client.setSoTimeout(10000);
             System.out.println("client connected");
         }
 
@@ -443,7 +401,7 @@ public class Center implements Serializable {
             private ClientHandler(Socket socket) {
                 try {
                     sock = socket;
-                    sock.setSoTimeout(20000);
+                    sock.setSoTimeout(10000);
                     outStream = new ObjectOutputStream(sock.getOutputStream());
                     inStream = new ObjectInputStream(sock.getInputStream());
                 } catch (IOException ex) {
@@ -498,21 +456,17 @@ public class Center implements Serializable {
                                 break;
                         }
                     } else if (obj instanceof Transaction) {
-                        System.out.println("Transaction Received");
-                        ((Transaction) obj).display();
                         outStream.writeObject("OK");
-                        broadcastTransaction((Transaction) obj);
-                    } else if (obj instanceof Block) {
-                        System.out.println("Block Received");
-                        Block newIncomingBlock = (Block) obj;
-                        newIncomingBlock.liveDisplay();
-                        try {
-                            if (CURRENTBLOCK.getNonce().compareTo(newIncomingBlock.getNonce()) >= 0) {
-                                outStream.writeObject("UNCONFIRMED");
-                            }
-                        } catch (NullPointerException ne) {
-                            outStream.writeObject(broadcastBlock(newIncomingBlock, false));
+                        Transaction transaction = (Transaction) obj;
+                        if (!broadCastedTXMemPool.contains(transaction.hash())) {
+                            System.out.println("Transaction Received");
+                            transaction.display();
+                            broadcastTransaction(transaction);
                         }
+
+                    } else if (obj instanceof Block) {
+                        Block newIncomingBlock = (Block) obj;
+                        outStream.writeObject(broadcastBlock(newIncomingBlock, false));
                     } else {
                         System.out.println("here comes unrecognized");
                         outStream.writeObject("OK");

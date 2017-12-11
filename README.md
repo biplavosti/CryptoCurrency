@@ -34,11 +34,11 @@ It has its peer list in core.common.PeerPool.java and stores the ip address and 
 It also verifies transactions and blocks received from other and put them in blockchain if verified.
 
 4) Transaction Pool : 
-core.TransactionPool is the pool of transaction that are mined into blocks and are a part of blockchain. It is saved in 'transactions.ser' file.
+core.TransactionPool.java is the pool of transaction that are mined into blocks and are a part of blockchain. It is saved in 'transactions.ser' file.
 Unspent transactions are separated out as core.common.UTXO.java and stored as list in core.common.UTXOPool.java and later save it to the file called 'utxo.ser'.
 
 5) Transaction, Block, BlockChain, Miner : 
-core.Miner.java collects core.common.Transaction.java and mine a core.Block. This block, if verified, are broadcasted to other miners and put into core.BlockChain.
+core.Miner.java collects core.common.Transaction.java and mine a core.Block.java. This block, if verified, are broadcasted to other miners and put into core.BlockChain.java.
 The Blockchain is saved in file 'blochchain.ser'.
 
 
@@ -52,11 +52,8 @@ More on Mining:
 
 2) Nonce is a value from 0 to 1999999999 and it is also considered as difficulty.
 
-3) Miner here if finds a block broadcasts it to other miners and wait for its immediate peers* confirmation. If number of confirmed peers is greater than unconfirmed ones it add the block into its blockchain. And if opposite is the case it tries to rectify its blockchain.
-The rectification process is :
-i) it requests other peers for their total difficulty ie. sum of all the nonce in their blockchain.
-ii) if this total nonce is greater than its own total difficulty it requests complete blockchain from its peer (this can be optimized) and if not no correction needed so it adds its block and continue with its own blockchain.
-iii) and this process repeats.
+3) Miner here if finds a block broadcasts it to other miners and waits for its immediate peers* confirmation. If number of confirmed peers is greater than unconfirmed ones it adds the block into its blockchain. And if not it does not add.
+
 
 Note: Immediate Peers mean those peers a center is directly connected to.
 

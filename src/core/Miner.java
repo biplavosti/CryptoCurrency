@@ -10,6 +10,7 @@ import core.common.Transaction;
 import java.math.BigInteger;
 import core.common.Account;
 import java.io.Serializable;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -27,6 +28,7 @@ public class Miner implements Serializable, Runnable {
     }
 
     public void start() {
+        newNoBlockTX = new LinkedList();
         minerThread = new Thread(this);
         minerThread.start();
     }
@@ -74,15 +76,14 @@ public class Miner implements Serializable, Runnable {
 
     @Override
     public void run() {
-        newNoBlockTX = Center.getInstance().submitNewTXList();
         while (Center.OPEN) {
             if (!Center.VALIDPEERBLOCK) {
+                newNoBlockTX.addAll(Center.getInstance().submitNewTXList());
                 System.out.println("miner transactions ------ starts-------");
                 for (Transaction tx : newNoBlockTX) {
                     tx.display();
                 }
                 System.out.println("miner transactions ------ ends-------");
-                Center.CURRENTBLOCK = null;
                 if (!Center.OPEN) {
                     return;
                 }
@@ -91,13 +92,11 @@ public class Miner implements Serializable, Runnable {
                 }
                 Block newFoundBlock = receiveTransaction(newNoBlockTX);
                 if (!newFoundBlock.verify()) {
-                    newNoBlockTX.addAll(Center.getInstance().submitNewTXList());
                     continue;
                 }
                 if (Center.VALIDPEERBLOCK) {
                     continue;
                 }
-//                Center.CURRENTBLOCK = newFoundBlock;
                 System.out.println("------New BLOCK MINED-----START---");
                 newFoundBlock.liveDisplay();
                 System.out.println("------New BLOCK MINED-----END---");
@@ -109,7 +108,6 @@ public class Miner implements Serializable, Runnable {
                 }
 
                 Center.getInstance().broadcastBlock(newFoundBlock, true);
-                newNoBlockTX.addAll(Center.getInstance().submitNewTXList());
             }
         }
     }
