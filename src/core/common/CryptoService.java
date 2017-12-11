@@ -22,7 +22,6 @@ public class CryptoService {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             return new BigInteger(digest.digest(key.getBytes(StandardCharsets.UTF_8))).toString();
         } catch (NoSuchAlgorithmException ex) {
-            ex.printStackTrace();
         }
         return "0";
     }

@@ -30,6 +30,7 @@ public class UserInterface {
         int option;
         boolean completed = false;
         while (!completed) {
+            System.out.println("Server : " + center.SELF.getHost() + " : " + center.SELF.getPort());
             System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
             System.out.println("ZZ  0 : EXIT");
             System.out.println("ZZ  1 : CREATE NEW ACCOUNT");
@@ -54,7 +55,12 @@ public class UserInterface {
                         }
                         System.out.println("ZZ");
                         System.out.println("Please choose an account : ");
-                        display(ACCOUNTS.get(INPUT.nextInt()));
+                        try {
+                            display(ACCOUNTS.get(INPUT.nextInt()));
+                        } catch (IndexOutOfBoundsException ae) {
+
+                        }
+
                     }
                     break;
                 case 0:
@@ -124,6 +130,9 @@ public class UserInterface {
 
                 case 1:
                     sendInteface(account);
+                    break;
+
+                default:
                     break;
             }
         }

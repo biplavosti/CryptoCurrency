@@ -25,8 +25,6 @@ import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -148,23 +146,25 @@ public class Center implements Serializable {
         newNoBlockTX.add(tx);
     }
 
-    public void broadcastTransaction(Transaction transaction) {
+    public String broadcastTransaction(Transaction transaction) {
         String hash = transaction.hash();
         if (!broadCastedTXMemPool.contains(hash)) {
+            System.out.println("Transaction Received");
+            transaction.display();
             if (!transaction.verify()) {
                 System.out.println("ERROR : Transaction is not verified");
-                return;
+                return "UNCONFIRMED";
             }
             try {
                 hitMultiplePeerNoWait(transaction);
             } catch (IOException | NullPointerException ex) {
-                ex.printStackTrace();
             }
             synchronized (MINER) {
                 broadCastedTXMemPool.add(hash);
-                newNoBlockTX.add(transaction);
+                newNoBlockTX.add(transaction);                
             }
         }
+        return "CONFIRMED";
     }
 
     public synchronized String broadcastBlock(Block block, boolean isMyBlock) {
@@ -172,7 +172,6 @@ public class Center implements Serializable {
         String blockHash = block.getBlockHash();
 
         if (!block.confirm()) {
-            System.out.println("ERROR : " + "Block not verified : " + blockHash);
             return "UNCONFIRMED";
         }
 
@@ -247,6 +246,7 @@ public class Center implements Serializable {
                     MINER.newNoBlockTX.removeAll(tempList);
                 }
                 VALIDPEERBLOCK = false;
+                System.out.println("LOG : Block confirmed : " + blockHash);
             }
         }
         return confirmation;
@@ -279,7 +279,6 @@ public class Center implements Serializable {
             os.close();
             fs.close();
         } catch (IOException ex) {
-            ex.printStackTrace();
             System.out.println("ERROR : Could not save Center");
         }
     }
@@ -377,7 +376,6 @@ public class Center implements Serializable {
                     }
                     System.out.println("client closed");
                 } catch (IOException ex) {
-                    ex.printStackTrace();
                 }
             }
             return object;
@@ -405,7 +403,6 @@ public class Center implements Serializable {
                     outStream = new ObjectOutputStream(sock.getOutputStream());
                     inStream = new ObjectInputStream(sock.getInputStream());
                 } catch (IOException ex) {
-                    ex.printStackTrace();
                 }
             }
 
@@ -456,14 +453,8 @@ public class Center implements Serializable {
                                 break;
                         }
                     } else if (obj instanceof Transaction) {
-                        outStream.writeObject("OK");
                         Transaction transaction = (Transaction) obj;
-                        if (!broadCastedTXMemPool.contains(transaction.hash())) {
-                            System.out.println("Transaction Received");
-                            transaction.display();
-                            broadcastTransaction(transaction);
-                        }
-
+                        outStream.writeObject(broadcastTransaction(transaction));
                     } else if (obj instanceof Block) {
                         Block newIncomingBlock = (Block) obj;
                         outStream.writeObject(broadcastBlock(newIncomingBlock, false));
@@ -473,14 +464,12 @@ public class Center implements Serializable {
                     }
                     outStream.flush();
                 } catch (IOException | ClassNotFoundException | ConcurrentModificationException ex) {
-                    ex.printStackTrace();
                 } finally {
                     try {
                         outStream.close();
                         inStream.close();
                         sock.close();
                     } catch (IOException ex) {
-                        ex.printStackTrace();
                     }
                 }
             }
@@ -497,7 +486,6 @@ public class Center implements Serializable {
                     }
                 }
             } catch (IOException ex) {
-                ex.printStackTrace();
             }
         }
     }

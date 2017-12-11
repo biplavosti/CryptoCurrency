@@ -78,12 +78,7 @@ public class Miner implements Serializable, Runnable {
     public void run() {
         while (Center.OPEN) {
             if (!Center.VALIDPEERBLOCK) {
-                newNoBlockTX.addAll(Center.getInstance().submitNewTXList());
-                System.out.println("miner transactions ------ starts-------");
-                for (Transaction tx : newNoBlockTX) {
-                    tx.display();
-                }
-                System.out.println("miner transactions ------ ends-------");
+                newNoBlockTX.addAll(Center.getInstance().submitNewTXList());                
                 if (!Center.OPEN) {
                     return;
                 }

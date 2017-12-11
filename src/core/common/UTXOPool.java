@@ -86,7 +86,6 @@ public class UTXOPool implements Serializable {
             os.flush();
             os.close();
         } catch (IOException ex) {
-            ex.printStackTrace();
             System.out.println("ERROR : Could not save UTXO");
         }
     }

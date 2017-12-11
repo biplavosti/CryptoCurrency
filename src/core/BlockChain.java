@@ -42,7 +42,6 @@ public final class BlockChain implements Serializable {
                     BLOCKCHAIN = getChainFromPeer(PeerPool.getInstance().getPeerList().getFirst());
                 } catch (Exception ex) {
                     System.out.println("blockchain peer load failed");
-                    ex.printStackTrace();
                     BLOCKCHAIN = new BlockChain();
                 }
             }
