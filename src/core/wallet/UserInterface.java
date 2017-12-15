@@ -9,6 +9,7 @@ import core.BlockChain;
 import core.TransactionPool;
 import core.common.Account;
 import core.common.Center;
+import core.common.CryptoService;
 import core.common.Peer;
 import core.common.PeerPool;
 import core.common.UTXOPool;
@@ -111,7 +112,7 @@ public class UserInterface {
         while (!completed) {
             System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
             System.out.println("ZZ  Name          : " + account.getName());
-            System.out.println("ZZ  Address       : " + account.getAddress());
+            System.out.println("ZZ  Address       : " + account.getEncodedAddress());
             System.out.println("ZZ  Coin          : " + account.getNumberofCoins());
             System.out.println("ZZ");
             System.out.println("ZZ");
@@ -143,12 +144,12 @@ public class UserInterface {
         System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
         System.out.println("ZZ  Enter receipent address :");
         INPUT.nextLine();
-        String receipent = INPUT.nextLine();
+        String receipent = INPUT.nextLine();        
         System.out.println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ");
         System.out.println("ZZ  Input number of Coins : ");
         System.out.println("ZZ");
         double coins = INPUT.nextDouble();
-        account.sendTx(coins, receipent, false);
+        account.sendTx(coins, CryptoService.base64Decode(receipent), false);
     }
 
     public static void main(String[] args) {

@@ -5,8 +5,10 @@
  */
 package core.common;
 
+import com.sun.org.apache.xerces.internal.impl.dv.util.Base64;
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.LinkedList;
 
 /**
@@ -22,8 +24,8 @@ public class Account implements Serializable {
     private Account(String name) {
         this.name = name;
 
-        BigInteger p = CryptoService.generatePrime(128);
-        BigInteger q = CryptoService.generatePrime(129);
+        BigInteger p = CryptoService.generatePrime(130);
+        BigInteger q = CryptoService.generatePrime(130);
         BigInteger e = BigInteger.ZERO;
         BigInteger d = BigInteger.ZERO;
         BigInteger pMinus1 = p.subtract(BigInteger.ONE);
@@ -57,7 +59,12 @@ public class Account implements Serializable {
         }
 
         pubKey = new PublicKey(e, p.multiply(q));
-        privateKey = new PrivateKey(d);
+        pubKey.display();
+
+        byte[] salt = new byte[4];
+        new SecureRandom().nextBytes(salt);
+        privateKey = new PrivateKey(d, Base64.encode(salt));
+        privateKey.display();
     }
 
     public static Account create(String name) {
@@ -69,13 +76,18 @@ public class Account implements Serializable {
     }
 
     public final String getAddress() {
-        //return pubKey.hash();
-        return CryptoService.generateAddressPubKey(pubKey);
+        String hash = CryptoService.hash(CryptoService.generateAddressPubKey(pubKey));
+        String prevHash;
+        for (int i = 1; i <= privateKey.getAddressSN(); i++) {
+            prevHash = CryptoService.hash(CryptoService.encrypt(CryptoService.base64Decode(privateKey.getSalt() + i), pubKey) + hash);
+            hash = CryptoService.hash(prevHash);
+        }
+        return hash;
     }
 
     public void display() {
         System.out.println("Name          -> " + name);
-        System.out.println("Address       -> " + getEncryptedAddress());
+        System.out.println("Address       -> " + getAddress());
     }
 
     private void sendTx(double coin) {
@@ -92,53 +104,64 @@ public class Account implements Serializable {
     }
 
     public Transaction prepareTX(double coin, String receiverAddress, boolean isCoinBase) {
-        String senderAddressHash = CryptoService.hash(getAddress());
-        String receiverAddressHash = CryptoService.hash(receiverAddress);
+        String senderAddressHashPrev;
+        String senderAddressHash = CryptoService.hash(CryptoService.generateAddressPubKey(pubKey));
+        String receiverAddressHash = receiverAddress;
 
         Transaction tx = new Transaction(coin + " coins transferred", isCoinBase);
         if (isCoinBase) {
-            tx.addOutput(coin, CryptoService.encrypt(receiverAddressHash, pubKey));
+            tx.addOutput(coin, getAddress());
         } else {
             double sum = 0.0;
-            LinkedList<UTXO> inputsUtxo = new LinkedList();
-            String senderAddressHashEncrypted = CryptoService.encrypt(senderAddressHash, pubKey);
-            for (UTXO utxo : UTXOPool.getInstance().getList()) {
-                if (senderAddressHashEncrypted.equals(utxo.getReceiverAddress())) {
-                    sum += utxo.getCoin();
-                    inputsUtxo.add(utxo);
-                    if (sum >= coin) {
-                        break;
+            LinkedList<UTXO> utxoPool = UTXOPool.getInstance().getList();
+            for (int i = 1; i <= privateKey.getAddressSN(); i++) {
+                senderAddressHashPrev = CryptoService.hash(CryptoService.encrypt(CryptoService.base64Decode(privateKey.getSalt() + i), pubKey) + senderAddressHash);
+                senderAddressHash = CryptoService.hash(senderAddressHashPrev);
+                for (UTXO utxo : utxoPool) {
+                    if (senderAddressHash.equals(utxo.getReceiverAddress())) {
+                        sum += utxo.getCoin();
+                        tx.addInput(utxo, CryptoService.encrypt(senderAddressHashPrev, privateKey, pubKey));
+                        if (sum >= coin) {
+                            break;
+                        }
                     }
+                }
+                if (sum >= coin) {
+                    break;
                 }
             }
             if (sum >= coin) {
-                tx.addInput(inputsUtxo);
-                tx.addOutput(coin, CryptoService.encrypt(receiverAddressHash, CryptoService.generatePubKey(receiverAddress)));
+                tx.addOutput(coin, receiverAddressHash);
                 double change = sum - coin;
                 if (change > 0) {
-                    tx.addOutput(change, CryptoService.encrypt(senderAddressHash, pubKey));
+                    tx.addOutput(change, getAddress());
                 }
             } else {
                 System.out.println("ERROR : Not enough coins");
             }
-            tx.setEncryptedHash(CryptoService.encrypt(tx.hash(), privateKey, pubKey));
-            tx.setSenderAddress(getAddress());
         }
+        tx.setEncryptedHash(CryptoService.encrypt(tx.hash(), privateKey, pubKey));
+        tx.setSenderPubKey(pubKey);
+        privateKey.setAddressSN(privateKey.getAddressSN() + 1);
         return tx;
     }
 
     public double getNumberofCoins() {
         double numberofCoins = 0.0;
-        String address = CryptoService.hash(getAddress());
-        for (UTXO utxo : UTXOPool.getInstance().getList()) {
-            if (address.equals(CryptoService.decrypt(utxo.getReceiverAddress(), privateKey, pubKey))) {
-                numberofCoins += utxo.getCoin();
+        String address = CryptoService.hash(CryptoService.generateAddressPubKey(pubKey));
+        LinkedList<UTXO> utxoPool = UTXOPool.getInstance().getList();
+        for (int i = 1; i <= privateKey.getAddressSN(); i++) {
+            address = CryptoService.hash(CryptoService.hash(CryptoService.encrypt(CryptoService.base64Decode(privateKey.getSalt() + i), pubKey) + address));
+            for (UTXO utxo : utxoPool) {
+                if (address.equals(utxo.getReceiverAddress())) {
+                    numberofCoins += utxo.getCoin();
+                }
             }
         }
         return numberofCoins;
     }
 
-    public String getEncryptedAddress() {
-        return CryptoService.encrypt(getAddress(), pubKey);
+    public String getEncodedAddress() {
+        return CryptoService.base64Encode(new BigInteger(getAddress()));
     }
 }

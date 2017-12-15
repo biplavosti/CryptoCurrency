@@ -5,6 +5,8 @@
  */
 package core.common;
 
+import com.sun.org.apache.xml.internal.security.exceptions.Base64DecodingException;
+import com.sun.org.apache.xml.internal.security.utils.Base64;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -99,5 +101,17 @@ public class CryptoService {
         BigInteger eKey = new BigInteger(address.substring(1, enc + 1));
         BigInteger product = new BigInteger(address.substring(enc + 1));
         return new PublicKey(eKey, product);
+    }
+    
+    public static String base64Encode(BigInteger originalStr){
+        return Base64.encode(originalStr);
+    }
+    
+    public static String base64Decode(String encodedStr){
+        try {
+            return new BigInteger(Base64.decode(encodedStr)).toString();
+        } catch (Base64DecodingException ex) {
+        }
+        return "0";
     }
 }

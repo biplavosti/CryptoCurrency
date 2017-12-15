@@ -23,7 +23,7 @@ public class Transaction implements Serializable {
     private final LinkedList<Input> inputs = new LinkedList();
     private final LinkedList<Output> outputs = new LinkedList();
     private String blockHash;
-    private String senderAddress;
+    private PublicKey senderPubKey;
     private String encryptedHash;
 
     public Transaction(String entry, boolean isCoinBase) {
@@ -43,7 +43,7 @@ public class Transaction implements Serializable {
             outputs.add(out);
         }
         blockHash = tx.blockHash;
-        senderAddress = tx.senderAddress;
+        senderPubKey = tx.senderPubKey;
         encryptedHash = tx.encryptedHash;
     }
 
@@ -74,12 +74,12 @@ public class Transaction implements Serializable {
         encryptedHash = txEncHash;
     }
 
-    public String getSenderAddress() {
-        return senderAddress;
+    public PublicKey getSenderPubKey() {
+        return senderPubKey;
     }
 
-    public void setSenderAddress(String address) {
-        senderAddress = address;
+    public void setSenderPubKey(PublicKey pubKey) {
+        senderPubKey = pubKey;
     }
 
     public void addInput(LinkedList<UTXO> inputsUtxo) {
@@ -88,12 +88,16 @@ public class Transaction implements Serializable {
         });
     }
 
+    public void addInput(UTXO utxo, String scriptSig) {
+        inputs.add(new Input(utxo.getTxHash(), utxo.getTxOutHash(), scriptSig));
+    }
+
     public void addOutput(double coin, String address) {
         Output out = new Output(coin, address);
         outputs.add(out);
     }
-    
-    public LinkedList<Output> getOutput(){
+
+    public LinkedList<Output> getOutput() {
         return outputs;
     }
 
@@ -132,29 +136,24 @@ public class Transaction implements Serializable {
     }
 
     public boolean verify() {
+        boolean isInputEmpty = inputs.isEmpty();
+        if (!coinBase) {
+            if (isInputEmpty) {
+                return false;
+            }
+        }
         if (outputs.isEmpty()) {
             return false;
         }
+
+        if (!hash().equals(CryptoService.decrypt(encryptedHash, senderPubKey))) {
+            return false;
+        }
+
         for (Output out : outputs) {
             if (!out.verify()) {
                 return false;
             }
-        }
-
-        boolean isInputEmpty = inputs.isEmpty();
-        if (coinBase) {
-            if (isInputEmpty) {
-                return true;
-            }
-        } else {
-            if (isInputEmpty) {
-                return false;
-            }
-        }
-
-        PublicKey senderPubKey = CryptoService.generatePubKey(senderAddress);
-        if (!hash().equals(CryptoService.decrypt(encryptedHash, senderPubKey))) {
-            return false;
         }
 
         for (Transaction trans : TransactionPool.getInstance().getList()) {
@@ -163,14 +162,15 @@ public class Transaction implements Serializable {
             }
         }
 
+        if (coinBase) {
+            return true;
+        }
+
         double inputSum = 0.0;
         double outputSum = 0.0;
-        final String senderAddressHashEncrypted = CryptoService.encrypt(CryptoService.hash(senderAddress), senderPubKey);
         for (Input input : inputs) {
             UTXO matchedUtxo = input.getUTXO();
             if (matchedUtxo == null) {
-                return false;
-            } else if (!senderAddressHashEncrypted.equals(matchedUtxo.getReceiverAddress())) {
                 return false;
             } else {
                 inputSum += matchedUtxo.getCoin();
@@ -186,10 +186,17 @@ public class Transaction implements Serializable {
 
         private String prevTxHash;
         private String prevTxOutputHash;
+        private String scriptSig;
 
         private Input(String prevTxHash, String prevTxOutputHash) {
             this.prevTxHash = prevTxHash;
             this.prevTxOutputHash = prevTxOutputHash;
+        }
+
+        private Input(String prevTxHash, String prevTxOutputHash, String scriptSig) {
+            this.prevTxHash = prevTxHash;
+            this.prevTxOutputHash = prevTxOutputHash;
+            this.scriptSig = scriptSig;
         }
 
         private String getPrevTxHash() {
@@ -215,7 +222,8 @@ public class Transaction implements Serializable {
         private UTXO getUTXO() {
             for (UTXO utxo : UTXOPool.getInstance().getList()) {
                 if (prevTxHash.equals(utxo.getTxHash())
-                        && prevTxOutputHash.equals(utxo.getTxOutHash())) {
+                        && prevTxOutputHash.equals(utxo.getTxOutHash())
+                        && utxo.getReceiverAddress().equals(CryptoService.hash(CryptoService.decrypt(scriptSig, senderPubKey)))) {
                     return utxo;
                 }
             }
