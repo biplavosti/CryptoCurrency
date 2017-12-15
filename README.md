@@ -11,7 +11,7 @@ Get Started:
 core.wallet.UserInterface.java is the entry point of the program. It is designed to act as a wallet as well as monitoring unit for blocks, blockchain and transactions. From UserInterface new Accounts aka addresses can be generated and transactions can be made.
 
 2) Account : 
-core.common.Account is address of a user. The address is the hash of the combination of a randomly generate sting 'Salt' and public key. Address is discussed more in More on Account/Address section.
+core.common.Account is address of a user. The address is the hash of the combination of a randomly generated string 'Salt' and public key. Address is discussed more in More on Account/Address section.
 
 core.common.CryptoService.java is the helper class that does this kind of address generation from public key and its reverse public key from an address.
 It also has other functions such as encryption and decryption messages ie. signature.
@@ -60,7 +60,7 @@ The scriptSig or script signature required is the hash generated in step 3. Send
 This makes the wallet a Deterministic Wallet since all the addresses can be generated from the seed salt and public key. 
 And notice that the old addresses can also be used to receive and claim coins.
 
-Also notice that the only string required is the signature hash generated in step 3. I have used salt and number of address for this project. Anyone implementing a new wallet can implement there own logic to generate the step 3 result. Moreover, different wallet for different accounts can implement different ideas to get the step 3 result. For example I can simply multiply number of addresses with 100 and use this as a salt to public key and never use the mentioned randomly generated string.
+Also notice that the only string required for miners to verify the authority of sender is the signature hash generated in step 3. I have used salt and number of address for this project. Anyone implementing a new wallet can implement there own logic to generate the step 3 result. Moreover, different wallet for different accounts can implement different ideas to get the step 3 result. For example I can simply multiply number of addresses with 100 and use this as a salt to public key and never use the mentioned randomly generated string.
 
 
 More on Center/Server:
